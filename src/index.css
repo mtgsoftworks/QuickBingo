@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Mobile Optimizations for QuickBingo */
+@layer base {
+  html {
+    /* Better text rendering on mobile */
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    /* Remove default margins and optimize for mobile */
+    margin: 0;
+    padding: 0;
+    overscroll-behavior: none;
+    /* Disable pull-to-refresh on mobile */
+    overscroll-behavior-y: contain;
+    /* Prevent horizontal scroll */
+    overflow-x: hidden;
+  }
+
+  /* Touch optimizations */
+  * {
+    /* Better touch targets */
+    -webkit-tap-highlight-color: transparent;
+    /* Smooth scrolling */
+    scroll-behavior: smooth;
+  }
+
+  /* Mobile viewport fix */
+  .mobile-container {
+    min-height: 100vh;
+    min-height: 100dvh; /* Dynamic viewport height for mobile */
+  }
+
+  /* Touch-friendly buttons */
+  button, .MuiButton-root {
+    min-height: 44px !important;
+    min-width: 44px !important;
+    touch-action: manipulation;
+  }
+
+  /* Bingo card optimizations */
+  .bingo-cell {
+    min-height: 40px;
+    min-width: 40px;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* Prevent zoom on input focus (iOS) */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  /* Safe area handling for notched devices */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Capacitor specific */
+  .capacitor-app {
+    overscroll-behavior: none;
+  }
+}
+
+/* Mobile responsive breakpoints */
+@layer utilities {
+  .mobile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+  }
+
+  .mobile-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  @media (max-width: 768px) {
+    .mobile-stack {
+      gap: 0.25rem;
+    }
+  }
+}
+
+/* High DPI and retina displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* Crisp rendering for high DPI */
+  img, svg {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}

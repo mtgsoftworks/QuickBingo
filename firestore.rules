@@ -1,0 +1,103 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Güvenlik fonksiyonları
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(resource) {
+      return request.auth.uid == resource.data.creatorUid;
+    }
+    
+    function isPlayer(resource) {
+      return request.auth.uid in [
+        resource.data.creatorUid, 
+        resource.data.player2Uid, 
+        resource.data.player3Uid, 
+        resource.data.player4Uid
+      ];
+    }
+    
+    function isValidGameRoom() {
+      return request.resource.data.keys().hasAll(['creatorUid', 'creatorName', 'status']) &&
+             request.resource.data.creatorUid == request.auth.uid;
+    }
+    
+    // Rate limiting fonksiyonu (basit)
+    function rateLimited() {
+      return request.time > resource.data.lastUpdate + duration.value(1, 's');
+    }
+    
+    // SHA-1 app restriction (Android only)
+    function isValidApp() {
+      // Bu kısım Firebase Console'dan SHA-1 key kısıtlaması ile çalışır
+      return true; // Firebase Console'dan SHA-1 kısıtlaması yaparız
+    }
+    
+    // Oyun odaları - Güçlendirilmiş kurallar
+    match /gameRooms/{roomId} {
+      allow read: if isAuthenticated() && isValidApp();
+      
+      allow create: if isAuthenticated() && 
+                   isValidApp() && 
+                   isValidGameRoom() &&
+                   request.resource.data.size() < 50; // Maksimum field sayısı
+      
+      allow update: if isAuthenticated() && 
+                   isValidApp() && 
+                   isPlayer(resource) &&
+                   rateLimited() &&
+                   request.resource.data.diff(resource.data).affectedKeys()
+                     .hasOnly(['player2Uid', 'player2Name', 'player3Uid', 'player3Name', 
+                              'player4Uid', 'player4Name', 'status', 'readyP1', 'readyP2', 
+                              'readyP3', 'readyP4', 'drawnNumbers', 'markedNumbersP1', 
+                              'markedNumbersP2', 'markedNumbersP3', 'markedNumbersP4', 
+                              'winner', 'currentTurn', 'player1Connected', 'player2Connected',
+                              'player3Connected', 'player4Connected', 'disconnectTimerStart',
+                              'startDateTime', 'endDateTime', 'roomName', 'maxPlayers',
+                              'type', 'password', 'startTime', 'endTime', 'lastUpdate']);
+      
+      allow delete: if isAuthenticated() && 
+                   isValidApp() && 
+                   isOwner(resource);
+    }
+    
+    // Kullanıcı istatistikleri - Sıkı güvenlik
+    match /quickbingoStats/{statId} {
+      allow read: if isAuthenticated() && 
+                 isValidApp() && 
+                 request.auth.uid == resource.data.userId;
+      
+      allow create: if isAuthenticated() && 
+                   isValidApp() && 
+                   request.auth.uid == request.resource.data.userId &&
+                   request.resource.data.keys().hasAll(['userId', 'score', 'timestamp']) &&
+                   request.resource.data.score is number &&
+                   request.resource.data.score >= 0 &&
+                   request.resource.data.score <= 1000; // Maksimum skor limiti
+      
+      allow update, delete: if false; // İstatistikler değiştirilemeez
+    }
+    
+    // Kullanıcı başarımları - Kullanıcı bazlı
+    match /users/{userId}/quickbingoAchievements/{achievementId} {
+      allow read, write: if isAuthenticated() && 
+                        isValidApp() && 
+                        request.auth.uid == userId &&
+                        request.resource.data.keys().hasAll(['title', 'unlockedAt']);
+    }
+    
+    // Başarım ilerlemesi - Kullanıcı bazlı
+    match /users/{userId}/achievementProgress/{gameType} {
+      allow read, write: if isAuthenticated() && 
+                        isValidApp() && 
+                        request.auth.uid == userId;
+    }
+    
+    // Diğer tüm koleksiyonları reddet
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+} 

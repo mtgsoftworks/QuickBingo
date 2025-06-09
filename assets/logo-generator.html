@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickBingo Logo Generator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        canvas {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            margin: 20px;
+        }
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .description {
+            color: #666;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 QuickBingo Logo Generator</h1>
+        <p class="description">Modern ve dikkat çekici QuickBingo logosu oluşturucu</p>
+        
+        <canvas id="logoCanvas" width="512" height="512"></canvas>
+        
+        <div class="controls">
+            <button onclick="generateLogo()">🎨 Logo Oluştur</button>
+            <button onclick="downloadLogo('512')">📱 512x512 İndir</button>
+            <button onclick="generateIcon(192)" style="background: linear-gradient(45deg, #4CAF50, #45a049)">📱 192x192 Icon</button>
+            <button onclick="generateIcon(144)" style="background: linear-gradient(45deg, #FF9800, #F57C00)">📱 144x144 Icon</button>
+            <button onclick="generateIcon(96)" style="background: linear-gradient(45deg, #2196F3, #1976D2)">📱 96x96 Icon</button>
+            <button onclick="generateIcon(72)" style="background: linear-gradient(45deg, #9C27B0, #7B1FA2)">📱 72x72 Icon</button>
+            <button onclick="generateIcon(48)" style="background: linear-gradient(45deg, #F44336, #D32F2F)">📱 48x48 Icon</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('logoCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function generateLogo() {
+            const size = 512;
+            canvas.width = size;
+            canvas.height = size;
+            
+            // Temiz arka plan
+            ctx.clearRect(0, 0, size, size);
+            
+            // Gradient arka plan
+            const gradient = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(0.6, '#764ba2');
+            gradient.addColorStop(1, '#5b4397');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Ana circle (bingo kartı temsili)
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, size*0.35, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.strokeStyle = '#4a4a4a';
+            ctx.lineWidth = 8;
+            ctx.stroke();
+            
+            // İç grid pattern (5x5 bingo kartı)
+            const gridSize = size * 0.5;
+            const cellSize = gridSize / 5;
+            const startX = (size - gridSize) / 2;
+            const startY = (size - gridSize) / 2;
+            
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 2;
+            
+            // Grid çizgileri
+            for (let i = 0; i <= 5; i++) {
+                ctx.beginPath();
+                ctx.moveTo(startX + i * cellSize, startY);
+                ctx.lineTo(startX + i * cellSize, startY + gridSize);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(startX, startY + i * cellSize);
+                ctx.lineTo(startX + gridSize, startY + i * cellSize);
+                ctx.stroke();
+            }
+            
+            // Merkez FREE space
+            ctx.fillStyle = '#667eea';
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, cellSize * 0.4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // QuickBingo yazısı
+            ctx.font = `bold ${size * 0.08}px 'Segoe UI', Arial, sans-serif`;
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // Gölge efekti
+            ctx.shadowColor = 'rgba(0,0,0,0.3)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetY = 4;
+            
+            // "QUICK" yazısı üstte
+            ctx.fillText('QUICK', size/2, size * 0.15);
+            
+            // "BINGO" yazısı altta
+            ctx.fillText('BINGO', size/2, size * 0.85);
+            
+            // Gölgeyi sıfırla
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 0;
+            
+            // Köşelerde dekoratif yıldızlar
+            drawStar(size * 0.15, size * 0.15, 15, '#FFD700');
+            drawStar(size * 0.85, size * 0.15, 15, '#FFD700');
+            drawStar(size * 0.15, size * 0.85, 15, '#FFD700');
+            drawStar(size * 0.85, size * 0.85, 15, '#FFD700');
+        }
+        
+        function drawStar(x, y, radius, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                const angle = (i * 144 - 90) * Math.PI / 180;
+                const outerX = x + radius * Math.cos(angle);
+                const outerY = y + radius * Math.sin(angle);
+                
+                const innerAngle = ((i + 0.5) * 144 - 90) * Math.PI / 180;
+                const innerX = x + (radius * 0.4) * Math.cos(innerAngle);
+                const innerY = y + (radius * 0.4) * Math.sin(innerAngle);
+                
+                if (i === 0) ctx.moveTo(outerX, outerY);
+                else ctx.lineTo(outerX, outerY);
+                ctx.lineTo(innerX, innerY);
+            }
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        function generateIcon(iconSize) {
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = iconSize;
+            tempCanvas.height = iconSize;
+            
+            const size = iconSize;
+            
+            // Gradient arka plan
+            const gradient = tempCtx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(1, '#764ba2');
+            
+            tempCtx.fillStyle = gradient;
+            tempCtx.fillRect(0, 0, size, size);
+            
+            // Ana circle
+            tempCtx.beginPath();
+            tempCtx.arc(size/2, size/2, size*0.4, 0, Math.PI * 2);
+            tempCtx.fillStyle = '#ffffff';
+            tempCtx.fill();
+            tempCtx.strokeStyle = '#4a4a4a';
+            tempCtx.lineWidth = Math.max(2, size * 0.01);
+            tempCtx.stroke();
+            
+            // Basit B harfi (Bingo için)
+            tempCtx.font = `bold ${size * 0.4}px Arial`;
+            tempCtx.fillStyle = '#667eea';
+            tempCtx.textAlign = 'center';
+            tempCtx.textBaseline = 'middle';
+            tempCtx.fillText('B', size/2, size/2);
+            
+            // İndir
+            const link = document.createElement('a');
+            link.download = `quickbingo-icon-${iconSize}x${iconSize}.png`;
+            link.href = tempCanvas.toDataURL();
+            link.click();
+        }
+        
+        function downloadLogo(sizeStr) {
+            const link = document.createElement('a');
+            link.download = `quickbingo-logo-${sizeStr}x${sizeStr}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+        
+        // Sayfa yüklendiğinde logoyu oluştur
+        window.onload = function() {
+            generateLogo();
+        };
+    </script>
+</body>
+</html> 
