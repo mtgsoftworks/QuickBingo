@@ -62,64 +62,107 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center">
-            <LogIn className="w-8 h-8 text-indigo-600 mr-2" />
-            <h2 className="text-2xl font-bold text-gray-800">{t('auth.login')}</h2>
-          </div>
-          <LanguageSwitcher />
-        </div>
-        
-        <div className="mb-6 p-4 bg-indigo-50 rounded-lg">
-          <h3 className="font-semibold text-lg text-indigo-700 mb-2">
-            {t('auth.welcomeToBingo')}
-          </h3>
-          <p className="text-indigo-700 mb-2">
-            {t('auth.gameDescription')}
-          </p>
-          <div className="flex items-center text-indigo-700 mt-3">
-            <Users className="w-5 h-5 mr-2" />
-            <span>{t('auth.twoPlayerGame')}</span>
-          </div>
-        </div>
-        
-        {error && <p className="text-red-500 mb-4 text-sm">{error}</p>}
-        
-        <div className="space-y-3">
-          <button
-            onClick={handleGoogleSignIn}
-            className="w-full flex items-center justify-center bg-white border border-gray-300 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            <img
-              className="h-5 w-5 mr-2"
-              src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-              alt="Google logo"
-            />
-            {t('auth.googleSignIn')}
-          </button>
+    <div className="min-h-screen min-h-dvh bg-gradient-to-br from-primary-500 via-primary-600 to-secondary-500 flex items-center justify-center safe-area-inset">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="w-full h-full" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='3'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          backgroundRepeat: 'repeat'
+        }}></div>
+      </div>
+      
+      <div className="container-mobile relative z-10">
+        <div className="max-w-md mx-auto">
+          {/* Main Card with Glass Effect */}
+          <div className="card-modern glass-effect backdrop-blur-xl bg-white/90 p-6 md:p-8 animate-scale-in">
+            {/* Header */}
+            <div className="flex-between mb-8">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-primary-500 rounded-xl flex-center shadow-lg">
+                  <LogIn className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">{t('auth.login')}</h1>
+                  <p className="text-sm text-gray-500">QuickBingo™</p>
+                </div>
+              </div>
+              <LanguageSwitcher />
+            </div>
+            
+            {/* Welcome Card */}
+            <div className="mb-8 p-6 bg-gradient-to-r from-primary-50 to-secondary-50 rounded-2xl border border-primary-100">
+              <h3 className="font-semibold text-lg text-primary-700 mb-2 flex items-center gap-2">
+                <span className="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></span>
+                {t('auth.welcomeToBingo')}
+              </h3>
+              <p className="text-primary-600 mb-4 text-sm leading-relaxed">
+                {t('auth.gameDescription')}
+              </p>
+              <div className="flex items-center text-primary-600">
+                <Users className="w-5 h-5 mr-2 text-primary-500" />
+                <span className="text-sm font-medium">{t('auth.twoPlayerGame')}</span>
+              </div>
+            </div>
+            
+            {/* Error Message */}
+            {error && (
+              <div className="mb-6 p-4 bg-error-50 border border-error-200 rounded-xl animate-slide-up">
+                <p className="text-error-600 text-sm font-medium">{error}</p>
+              </div>
+            )}
+            
+            {/* Login Actions */}
+            <div className="space-y-4">
+              {/* Google Sign In */}
+              <button
+                onClick={handleGoogleSignIn}
+                className="w-full bg-white border border-gray-200 rounded-xl px-6 py-4 text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 touch-target-comfortable shadow-sm hover:shadow-md group"
+              >
+                <div className="flex items-center justify-center gap-3">
+                  <img
+                    className="h-5 w-5 group-hover:scale-110 transition-transform"
+                    src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                    alt="Google logo"
+                  />
+                  <span>{t('auth.googleSignIn')}</span>
+                </div>
+              </button>
 
-          <div>
-            <input
-              type="text"
-              value={anonNickname}
-              onChange={e => setAnonNickname(e.target.value)}
-              placeholder="Nickname"
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-gray-500"
-            />
+              {/* Divider */}
+              <div className="relative py-2">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-white text-gray-500 font-medium">veya</span>
+                </div>
+              </div>
+
+              {/* Anonymous Login */}
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  value={anonNickname}
+                  onChange={e => setAnonNickname(e.target.value)}
+                  placeholder="Takma adınızı girin"
+                  className="input-modern"
+                />
+                <button
+                  onClick={handleAnonymousSignIn}
+                  className="btn-primary w-full btn-lg ripple"
+                >
+                  <Users className="w-5 h-5" />
+                  <span>{t('auth.playAnonymously')}</span>
+                </button>
+              </div>
+            </div>
+            
+            {/* Footer */}
+            <p className="text-center text-xs text-gray-400 mt-8 leading-relaxed">
+              {t('auth.loginDisclaimer')}
+            </p>
           </div>
-          <button
-            onClick={handleAnonymousSignIn}
-            className="w-full flex items-center justify-center bg-gray-600 rounded-lg px-4 py-3 text-sm font-medium text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-          >
-            {t('auth.playAnonymously')}
-          </button>
         </div>
-        
-        <p className="text-center text-sm text-gray-500 mt-6">
-          {t('auth.loginDisclaimer')}
-        </p>
       </div>
     </div>
   );

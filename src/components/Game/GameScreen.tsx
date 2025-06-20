@@ -63,6 +63,8 @@ import AchievementModal from './AchievementModal';
 import LockIcon from '@mui/icons-material/Lock';
 import EventIcon from '@mui/icons-material/Event';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import SettingsIcon from '@mui/icons-material/Settings';
+import { SettingsModal } from '../UI/SettingsModal';
 
 // Define a type for the game room data
 interface GameRoomData extends DocumentData {
@@ -160,6 +162,7 @@ const GameScreen: React.FC = () => {
 
   const [achievementsOpen, setAchievementsOpen] = useState(false);
   const [achievements, setAchievements] = useState<Array<{ id: string; title: string }>>([]);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const handleReady = async () => {
     if (!currentUser || !roomId || !gameRoom) return;
@@ -801,293 +804,507 @@ const GameScreen: React.FC = () => {
 
   if (loading) {
     return (
-      <Container maxWidth="lg">
-        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-          <CircularProgress />
-        </Box>
-      </Container>
+      <div className="min-h-screen min-h-dvh bg-background flex-center safe-area-inset">
+        <div className="text-center">
+          <div className="w-12 h-12 border-3 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Oyun yükleniyor...</p>
+        </div>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Container maxWidth="lg">
-        <Alert severity="error" sx={{ my: 4 }}>
-          {error}
-        </Alert>
-        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
-          {lastErrorAction ? (
-            <Button variant="contained" onClick={() => { lastErrorAction(); setError(null); }}>
-              {t('retry')}
-            </Button>
-          ) : (
-            <Button variant="outlined" onClick={() => navigate('/lobby')}>
-              {t('backToLobby')}
-            </Button>
-          )}
-        </Box>
-      </Container>
+      <div className="min-h-screen min-h-dvh bg-background safe-area-inset">
+        <div className="container-mobile py-6">
+          <div className="card-modern p-6 text-center">
+            <div className="w-16 h-16 bg-error-100 rounded-full flex-center mx-auto mb-4">
+              <span className="text-error-500 text-2xl">⚠️</span>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Bir Hata Oluştu</h2>
+            <p className="text-error-600 mb-6">{error}</p>
+            <div className="flex gap-3">
+              {lastErrorAction ? (
+                <button onClick={() => { lastErrorAction(); setError(null); }} className="btn-primary flex-1">
+                  {t('retry')}
+                </button>
+              ) : (
+                <button onClick={() => navigate('/lobby')} className="btn-secondary flex-1">
+                  {t('backToLobby')}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 
   if (!gameRoom) {
     return (
-      <Container maxWidth="lg">
-        <Alert severity="warning" sx={{ my: 4 }}>
-          {t('errorGameRoomDataNotAvailable')}
-        </Alert>
-        <Button sx={{ mt: 2 }} variant="outlined" onClick={() => navigate('/lobby')}>
-          {t('backToLobby')}
-        </Button>
-      </Container>
+      <div className="min-h-screen min-h-dvh bg-background safe-area-inset">
+        <div className="container-mobile py-6">
+          <div className="card-modern p-6 text-center">
+            <div className="w-16 h-16 bg-warning-100 rounded-full flex-center mx-auto mb-4">
+              <span className="text-warning-500 text-2xl">🔍</span>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Oda Bulunamadı</h2>
+            <p className="text-gray-600 mb-6">{t('errorGameRoomDataNotAvailable')}</p>
+            <button onClick={() => navigate('/lobby')} className="btn-primary">
+              {t('backToLobby')}
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
 
   // Determine if the current user is player 1 
   const isPlayer1 = currentUser?.uid === gameRoom.creatorUid;
 
-  // Main game screen content
+  // Modern mobile game screen
   return (
-    <Container maxWidth="lg" sx={{ position: 'relative', py: 2 }}>
-      {/* Penalty overlay */}
+    <div className="min-h-screen min-h-dvh bg-background safe-area-inset relative">
+      {/* Penalty Overlay */}
       {penaltyCountdown !== null && (
-        <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', bgcolor: 'rgba(0,0,0,0.7)', zIndex: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: 'white' }}>
-          <Typography variant="h4">{t('penaltyMessage', { seconds: penaltyCountdown })}</Typography>
-        </Box>
+        <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex-center flex-col text-white">
+          <div className="text-center p-6">
+            <div className="w-20 h-20 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <h2 className="text-2xl font-bold mb-2">{t('penaltyMessage', { seconds: penaltyCountdown })}</h2>
+            <p className="text-gray-300">Lütfen bekleyin...</p>
+          </div>
+        </div>
       )}
-      {/* Modern header bar */}
-      <AppBar position="static" color="inherit" elevation={1} sx={{ mb: 4 }}>
-        <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Typography variant="h5" component="div">{t('gameTitleBasic')}</Typography>
-          {isPlayer1 && (
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography variant="body1">{`${t('roomLabel')}: ${roomId!}`}</Typography>
-              <IconButton size="small" onClick={() => { navigator.clipboard.writeText(roomId!); showNotification(t('common.copySuccess'), 'success'); }} sx={{ ml: 1 }}>
-                <ContentCopyIcon />
-              </IconButton>
-            </Box>
-          )}
-        </Toolbar>
-      </AppBar>
-      {/* Modernized lobby details for creator in waiting room */}
+      
+      {/* Modern Header */}
+      <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg">
+        <div className="container-mobile py-4">
+          <div className="flex-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex-center">
+                <span className="text-lg">🎯</span>
+              </div>
+              <div>
+                <h1 className="text-lg font-bold">{t('gameTitleBasic')}</h1>
+                <p className="text-primary-200 text-sm">Canlı Oyun</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              {isPlayer1 && (
+                <>
+                  <div className="hidden sm:block text-right text-sm">
+                    <p className="text-primary-200">Oda Kodu</p>
+                    <p className="font-mono font-bold">{roomId}</p>
+                  </div>
+                  <button 
+                    onClick={() => { 
+                      navigator.clipboard.writeText(roomId!); 
+                      showNotification(t('common.copySuccess'), 'success'); 
+                    }}
+                    className="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex-center hover:bg-opacity-30 transition-all"
+                  >
+                    <span className="text-white">📋</span>
+                  </button>
+                </>
+              )}
+              <button
+                onClick={() => setIsSettingsOpen(true)}
+                className="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex-center hover:bg-opacity-30 transition-all"
+              >
+                <SettingsIcon className="text-white w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* Modern Lobby Details */}
       {isPlayer1 && gameRoom.status === 'waiting' && (
-        <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center" flexWrap="wrap">
-            {gameRoom.password && (
-              <Chip icon={<LockIcon />} label={`${t('lobby.passwordLabel')}: ${gameRoom.password}`} variant="outlined" />
-            )}
-            <Chip
-              icon={<EventIcon />}
-              label={gameRoom.type === 'event' ? t('lobby.event') : t('lobby.normal')}
-              color={gameRoom.type === 'event' ? 'secondary' : 'default'}
-            />
-            {gameRoom.type === 'event' && gameRoom.startTime && (
-              <Chip
-                icon={<CalendarTodayIcon />}
-                label={`${t('lobby.startDateTime')}: ${gameRoom.startTime.toDate().toLocaleString()}`}
-                variant="outlined"
-              />
-            )}
-            {gameRoom.type === 'event' && gameRoom.endTime && (
-              <Chip
-                icon={<CalendarTodayIcon />}
-                label={`${t('lobby.endDateTime')}: ${gameRoom.endTime.toDate().toLocaleString()}`}
-                variant="outlined"
-              />
-            )}
-          </Stack>
-        </Paper>
+        <div className="container-mobile">
+          <div className="card-modern p-4 mb-4">
+            <div className="flex flex-wrap gap-2">
+              {gameRoom.password && (
+                <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full text-sm">
+                  <span>🔒</span>
+                  <span>{t('lobby.passwordLabel')}: {gameRoom.password}</span>
+                </div>
+              )}
+              <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
+                gameRoom.type === 'event' ? 'bg-secondary-100 text-secondary-700' : 'bg-gray-100 text-gray-700'
+              }`}>
+                <span>{gameRoom.type === 'event' ? '📅' : '🎮'}</span>
+                <span>{gameRoom.type === 'event' ? t('lobby.event') : t('lobby.normal')}</span>
+              </div>
+              {gameRoom.type === 'event' && gameRoom.startTime && (
+                <div className="flex items-center gap-2 px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm">
+                  <span>🕐</span>
+                  <span>{gameRoom.startTime.toDate().toLocaleString()}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
-      <Box sx={{ my: 4 }}>
-        {/* Disconnect Countdown Alert - Show only when 'stopping' */}
+      
+      <div className="container-mobile">
+        {/* Disconnect Warning */}
         {gameRoom!.status === 'stopping' && disconnectCountdown !== null && (
-            <Alert severity="warning" sx={{ mb: 2 }}>
-                {t('opponentDisconnected', { seconds: disconnectCountdown })}
-            </Alert>
+          <div className="bg-warning-100 border border-warning-500 rounded-lg p-4 mb-4">
+            <div className="flex items-center gap-3">
+              <span className="text-warning-500 text-xl">⚠️</span>
+              <div>
+                <h4 className="font-medium text-warning-800">Oyuncu Bağlantı Sorunu</h4>
+                <p className="text-warning-700 text-sm">{t('opponentDisconnected', { seconds: disconnectCountdown })}</p>
+              </div>
+            </div>
+          </div>
         )}
 
-        {/* Player Information Area - Add Winner/Loser Labels */}
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 3 }}>
-          <Box sx={{ flex: '1 0 50%', mb: 1 }}>
-            <Typography variant="h6">{t('player1')}:</Typography>
-            <Typography>
-              {gameRoom.creatorName} {t('creator')}
-              {/* Show label if game finished */}
-              {gameRoom.status === 'finished' && (
-                gameRoom.winner === gameRoom.creatorUid ? 
-                  <Typography component="span" color="success.main" sx={{ ml: 1 }}>{t('lobby.winnerLabel')}</Typography> : 
-                  <Typography component="span" color="error.main" sx={{ ml: 1 }}>{t('lobby.loserLabel')}</Typography>
-              )}
-            </Typography>
-          </Box>
-          <Box sx={{ flex: '1 0 50%', mb: 1 }}>
-            <Typography variant="h6">{t('player2')}:</Typography>
-            {gameRoom.player2Name ? (
-              <Typography>
-                {gameRoom.player2Name}
-                {/* Show label if game finished */}
+        {/* Modern Players Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          {/* Player 1 */}
+          <div className="card-modern p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary-100 rounded-full flex-center">
+                <span className="text-primary-600 font-bold">1</span>
+              </div>
+              <div className="flex-1">
+                <h4 className="font-medium text-gray-900">{gameRoom.creatorName}</h4>
+                <p className="text-sm text-gray-500">{t('creator')}</p>
                 {gameRoom.status === 'finished' && (
-                  gameRoom.winner === gameRoom.player2Uid ? 
-                    <Typography component="span" color="success.main" sx={{ ml: 1 }}>{t('lobby.winnerLabel')}</Typography> : 
-                    <Typography component="span" color="error.main" sx={{ ml: 1 }}>{t('lobby.loserLabel')}</Typography>
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    gameRoom.winner === gameRoom.creatorUid 
+                      ? 'bg-success-100 text-success-700' 
+                      : 'bg-error-100 text-error-700'
+                  }`}>
+                    {gameRoom.winner === gameRoom.creatorUid ? t('lobby.winnerLabel') : t('lobby.loserLabel')}
+                  </span>
                 )}
-              </Typography>
-            ) : (
-              <Typography><i>{t('waitingPlayer')}</i></Typography>
-            )}
-          </Box>
+              </div>
+              {gameRoom.player1Connected && (
+                <div className="w-3 h-3 bg-success-500 rounded-full"></div>
+              )}
+            </div>
+          </div>
+
+          {/* Player 2 */}
+          <div className="card-modern p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-secondary-100 rounded-full flex-center">
+                <span className="text-secondary-600 font-bold">2</span>
+              </div>
+              <div className="flex-1">
+                {gameRoom.player2Name ? (
+                  <>
+                    <h4 className="font-medium text-gray-900">{gameRoom.player2Name}</h4>
+                    <p className="text-sm text-gray-500">Oyuncu</p>
+                    {gameRoom.status === 'finished' && (
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        gameRoom.winner === gameRoom.player2Uid 
+                          ? 'bg-success-100 text-success-700' 
+                          : 'bg-error-100 text-error-700'
+                      }`}>
+                        {gameRoom.winner === gameRoom.player2Uid ? t('lobby.winnerLabel') : t('lobby.loserLabel')}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <h4 className="font-medium text-gray-400">{t('waitingPlayer')}</h4>
+                    <p className="text-sm text-gray-400">Bekleniyor...</p>
+                  </>
+                )}
+              </div>
+              {gameRoom.player2Connected && (
+                <div className="w-3 h-3 bg-success-500 rounded-full"></div>
+              )}
+            </div>
+          </div>
+
+          {/* Player 3 & 4 for 3-4 player games */}
           {(gameRoom.maxPlayers || 0) >= 3 && (
-            <Box sx={{ flex: '1 0 50%', mb: 1 }}>
-              <Typography variant="h6">{t('player3')}:</Typography>
-              {gameRoom.player3Name ? (
-                <Typography>
-                  {gameRoom.player3Name}
-                  {/* Show label if game finished */}
-                  {gameRoom.status === 'finished' && (
-                    gameRoom.winner === gameRoom.player3Uid
-                      ? <Typography component="span" color="success.main" sx={{ ml: 1 }}>{t('lobby.winnerLabel')}</Typography>
-                      : <Typography component="span" color="error.main" sx={{ ml: 1 }}>{t('lobby.loserLabel')}</Typography>
+            <div className="card-modern p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-indigo-100 rounded-full flex-center">
+                  <span className="text-indigo-600 font-bold">3</span>
+                </div>
+                <div className="flex-1">
+                  {gameRoom.player3Name ? (
+                    <>
+                      <h4 className="font-medium text-gray-900">{gameRoom.player3Name}</h4>
+                      <p className="text-sm text-gray-500">Oyuncu</p>
+                      {gameRoom.status === 'finished' && (
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          gameRoom.winner === gameRoom.player3Uid 
+                            ? 'bg-success-100 text-success-700' 
+                            : 'bg-error-100 text-error-700'
+                        }`}>
+                          {gameRoom.winner === gameRoom.player3Uid ? t('lobby.winnerLabel') : t('lobby.loserLabel')}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <h4 className="font-medium text-gray-400">{t('waitingPlayer')}</h4>
+                      <p className="text-sm text-gray-400">Bekleniyor...</p>
+                    </>
                   )}
-                </Typography>
-              ) : (
-                <Typography><i>{t('waitingPlayer')}</i></Typography>
-              )}
-            </Box>
+                </div>
+                {gameRoom.player3Connected && (
+                  <div className="w-3 h-3 bg-success-500 rounded-full"></div>
+                )}
+              </div>
+            </div>
           )}
+
           {(gameRoom.maxPlayers || 0) === 4 && (
-            <Box sx={{ flex: '1 0 50%', mb: 1 }}>
-              <Typography variant="h6">{t('player4')}:</Typography>
-              {gameRoom.player4Name ? (
-                <Typography>
-                  {gameRoom.player4Name}
-                  {/* Show label if game finished */}
-                  {gameRoom.status === 'finished' && (
-                    gameRoom.winner === gameRoom.player4Uid
-                      ? <Typography component="span" color="success.main" sx={{ ml: 1 }}>{t('lobby.winnerLabel')}</Typography>
-                      : <Typography component="span" color="error.main" sx={{ ml: 1 }}>{t('lobby.loserLabel')}</Typography>
+            <div className="card-modern p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-purple-100 rounded-full flex-center">
+                  <span className="text-purple-600 font-bold">4</span>
+                </div>
+                <div className="flex-1">
+                  {gameRoom.player4Name ? (
+                    <>
+                      <h4 className="font-medium text-gray-900">{gameRoom.player4Name}</h4>
+                      <p className="text-sm text-gray-500">Oyuncu</p>
+                      {gameRoom.status === 'finished' && (
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          gameRoom.winner === gameRoom.player4Uid 
+                            ? 'bg-success-100 text-success-700' 
+                            : 'bg-error-100 text-error-700'
+                        }`}>
+                          {gameRoom.winner === gameRoom.player4Uid ? t('lobby.winnerLabel') : t('lobby.loserLabel')}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <h4 className="font-medium text-gray-400">{t('waitingPlayer')}</h4>
+                      <p className="text-sm text-gray-400">Bekleniyor...</p>
+                    </>
                   )}
-                </Typography>
-              ) : (
-                <Typography><i>{t('waitingPlayer')}</i></Typography>
-              )}
-            </Box>
+                </div>
+                {gameRoom.player4Connected && (
+                  <div className="w-3 h-3 bg-success-500 rounded-full"></div>
+                )}
+              </div>
+            </div>
           )}
-        </Box>
+        </div>
 
-        {/* Game Status and Controls Area */}
-        <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-          <Typography variant="h6">{t('status')}: {gameRoom.status === 'stopping' ? `${gameRoom.status.toUpperCase()} (${t('waitingForPlayer')})` : gameRoom.status.toUpperCase()}</Typography>
-          {gameRoom.status === 'waiting' && isPlayer1 && (
-             <Typography><i>{t('waitingToJoin')}</i></Typography>
-          )}
-           {gameRoom.status === 'ready' && isPlayer1 && (
-             <Button variant="contained" onClick={handleStartGame} disabled={!allReady}>{t('startGame')}</Button>
-           )}
-           {gameRoom.status === 'ready' && !isPlayer1 && (
-             <Button variant="outlined" onClick={handleReady} disabled={isReady} startIcon={isReady ? <CheckCircleIcon /> : <HourglassEmptyIcon />}>
-               {isReady ? t('ready') : t('clickToReady')}
-             </Button>
-           )}
-          {/* Auto-draw toggle (host) */}
-          {gameRoom.status === 'playing' && isPlayer1 && !gameRoom.winner && (
-            <FormControlLabel
-              control={<Switch checked={autoDrawEnabled} onChange={() => setAutoDrawEnabled(prev => !prev)} />} 
-              label={autoDrawEnabled ? 'Otomatik Çekim Açık' : 'Otomatik Çekim Kapalı'}
-              sx={{ ml: 2 }}
-            />
-          )}
-          {gameRoom.status === 'playing' && isPlayer1 && !gameRoom.winner && autoDrawEnabled && (
-            <TextField
-              label="Çekim Süresi (sn)"
-              type="number"
-              value={autoDrawInterval}
-              onChange={(e) => setAutoDrawInterval(Number(e.target.value))}
-              inputProps={{ min: 1 }}
-              sx={{ width: '140px', ml: 2 }}
-            />
-          )}
-          {/* Manual draw button (unchanged) */}
-          {gameRoom.status === 'playing' && isPlayer1 && !gameRoom.winner && (
-            <Button
-              variant="contained"
-              color="secondary"
-              onClick={handleDrawNumber}
-              disabled={isDrawing || ((gameRoom.drawnNumbers?.length ?? 0) >= 90) || !!gameRoom.winner}
-            >
-              {isDrawing ? <CircularProgress size={24} /> : ((gameRoom.drawnNumbers?.length ?? 0) >= 90) ? t('allDrawn') : t('drawNextNumber')}
-            </Button>
-          )}
-          {/* Winner Alert - Keep this as it shows the overall winner */}
+        {/* Modern Game Status and Controls */}
+        <div className="card-modern p-4 mb-6">
+          {/* Status Header */}
+          <div className="flex-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className={`w-3 h-3 rounded-full ${
+                gameRoom.status === 'playing' ? 'bg-success-500 animate-pulse' :
+                gameRoom.status === 'ready' ? 'bg-warning-500' :
+                gameRoom.status === 'waiting' ? 'bg-gray-400' :
+                gameRoom.status === 'stopping' ? 'bg-error-500 animate-pulse' :
+                'bg-primary-500'
+              }`}></div>
+              <h3 className="text-lg font-bold text-gray-900">
+                {t('status')}: {
+                  gameRoom.status === 'stopping' 
+                    ? `${gameRoom.status.toUpperCase()} (${t('waitingForPlayer')})` 
+                    : gameRoom.status.toUpperCase()
+                }
+              </h3>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-3">
+            {/* Waiting State */}
+            {gameRoom.status === 'waiting' && isPlayer1 && (
+              <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg">
+                <span className="text-blue-500">ℹ️</span>
+                <span className="text-blue-700 text-sm font-medium">{t('waitingToJoin')}</span>
+              </div>
+            )}
+
+            {/* Ready State - Host */}
+            {gameRoom.status === 'ready' && isPlayer1 && (
+              <button 
+                onClick={handleStartGame} 
+                disabled={!allReady}
+                className={`btn-primary ${!allReady ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <span>🚀</span>
+                {t('startGame')}
+              </button>
+            )}
+
+            {/* Ready State - Player */}
+            {gameRoom.status === 'ready' && !isPlayer1 && (
+              <button 
+                onClick={handleReady} 
+                disabled={isReady}
+                className={`${isReady ? 'btn-secondary' : 'btn-primary'} ${isReady ? 'opacity-75' : ''}`}
+              >
+                <span>{isReady ? '✅' : '⏳'}</span>
+                {isReady ? t('ready') : t('clickToReady')}
+              </button>
+            )}
+
+            {/* Game Controls - Host Only */}
+            {gameRoom.status === 'playing' && isPlayer1 && !gameRoom.winner && (
+              <>
+                {/* Auto-draw Toggle */}
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={autoDrawEnabled}
+                      onChange={() => setAutoDrawEnabled(prev => !prev)}
+                      className="w-5 h-5 text-primary-500 rounded focus:ring-primary-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">
+                      {autoDrawEnabled ? 'Otomatik Çekim Açık' : 'Otomatik Çekim Kapalı'}
+                    </span>
+                  </label>
+                  
+                  {autoDrawEnabled && (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="1"
+                        value={autoDrawInterval}
+                        onChange={(e) => setAutoDrawInterval(Number(e.target.value))}
+                        className="w-16 px-2 py-1 text-sm border border-gray-300 rounded focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                      />
+                      <span className="text-xs text-gray-500">sn</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Manual Draw Button */}
+                <button
+                  onClick={handleDrawNumber}
+                  disabled={isDrawing || ((gameRoom.drawnNumbers?.length ?? 0) >= 90) || !!gameRoom.winner}
+                  className="btn-primary flex items-center gap-2"
+                >
+                  {isDrawing ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <span>🎱</span>
+                  )}
+                  {isDrawing ? 'Çekiliyor...' : 
+                   ((gameRoom.drawnNumbers?.length ?? 0) >= 90) ? t('allDrawn') : t('drawNextNumber')}
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Winner Announcement */}
           {gameRoom! && gameRoom!.winner && gameRoom!.status === 'finished' && (
-            <Alert severity="success" sx={{ width: '100%', mt: 1 }}>{t('winner')}: {gameRoom.winner === gameRoom.creatorUid ? gameRoom.creatorName : gameRoom.player2Name}</Alert>
+            <div className="mt-4 p-4 bg-success-100 border border-success-500 rounded-lg">
+              <div className="flex items-center gap-3">
+                <span className="text-success-500 text-2xl">🏆</span>
+                <div>
+                  <h4 className="font-bold text-success-800">Oyun Bitti!</h4>
+                  <p className="text-success-700">
+                    {t('winner')}: {gameRoom.winner === gameRoom.creatorUid ? gameRoom.creatorName : gameRoom.player2Name}
+                  </p>
+                </div>
+              </div>
+            </div>
           )}
-        </Box>
+        </div>
 
+        {/* Game Content Area */}
         {(gameRoom!.status === 'playing' || gameRoom!.status === 'stopping' || gameRoom!.status === 'finished') ? (
           <>
-            <Paper elevation={2} sx={{ p: 2, mb: 2 }}>
+            {/* Number Draw Section */}
+            <div className="mb-6">
               <NumberDraw drawnNumbers={gameRoom.drawnNumbers} />
-            </Paper>
-            <Paper elevation={2} sx={{ p: 2 }}>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                {Array.from({ length: gameRoom.maxPlayers || 2 }).map((_, idx) => {
-                  const slot =
-                    idx === 0
-                      ? { uid: gameRoom.creatorUid, name: gameRoom.creatorName, cardNumbers: gameRoom.player1Card || [], marks: markedNumbersP1Set }
-                    : idx === 1
-                      ? { uid: gameRoom.player2Uid, name: gameRoom.player2Name || '', cardNumbers: gameRoom.player2Card || [], marks: markedNumbersP2Set }
-                    : idx === 2
-                      ? { uid: gameRoom.player3Uid, name: gameRoom.player3Name || '', cardNumbers: gameRoom.player3Card || [], marks: markedNumbersP3Set }
-                    : { uid: gameRoom.player4Uid, name: gameRoom.player4Name || '', cardNumbers: gameRoom.player4Card || [], marks: markedNumbersP4Set };
-                  return (
-                    <Box key={idx} sx={{ flex: `1 0 ${colWidth}`, display: 'flex', flexDirection: 'column' }}>
-                      <Typography variant="h6" align="center" fontSize={{ xs: '1rem', sm: '1.25rem' }}>
+            </div>
+            
+            {/* Bingo Cards Grid */}
+            <div className="grid gap-4 mb-6" style={{
+              gridTemplateColumns: `repeat(${Math.min(gameRoom.maxPlayers || 2, 2)}, 1fr)`
+            }}>
+              {Array.from({ length: gameRoom.maxPlayers || 2 }).map((_, idx) => {
+                const slot =
+                  idx === 0
+                    ? { uid: gameRoom.creatorUid, name: gameRoom.creatorName, cardNumbers: gameRoom.player1Card || [], marks: markedNumbersP1Set }
+                  : idx === 1
+                    ? { uid: gameRoom.player2Uid, name: gameRoom.player2Name || '', cardNumbers: gameRoom.player2Card || [], marks: markedNumbersP2Set }
+                  : idx === 2
+                    ? { uid: gameRoom.player3Uid, name: gameRoom.player3Name || '', cardNumbers: gameRoom.player3Card || [], marks: markedNumbersP3Set }
+                  : { uid: gameRoom.player4Uid, name: gameRoom.player4Name || '', cardNumbers: gameRoom.player4Card || [], marks: markedNumbersP4Set };
+                
+                return (
+                  <div key={idx} className="flex flex-col">
+                    <div className="text-center mb-3">
+                      <h4 className="font-bold text-gray-900">
                         {slot.name || t('waitingPlayer')}
-                        {gameRoom.status === 'finished' && (
-                          gameRoom.winner === slot.uid
-                            ? <Typography component="span" color="success.main" sx={{ ml: 1 }}>{t('lobby.winnerLabel')}</Typography>
-                            : <Typography component="span" color="error.main" sx={{ ml: 1 }}>{t('lobby.loserLabel')}</Typography>
+                        {gameRoom.status === 'finished' && slot.uid && (
+                          <span className={`ml-2 text-xs px-2 py-1 rounded-full ${
+                            gameRoom.winner === slot.uid
+                              ? 'bg-success-100 text-success-700'
+                              : 'bg-error-100 text-error-700'
+                          }`}>
+                            {gameRoom.winner === slot.uid ? t('lobby.winnerLabel') : t('lobby.loserLabel')}
+                          </span>
                         )}
-                      </Typography>
-                      {slot.cardNumbers.length === 25 ? (
-                        <BingoCard
-                          numbers={slot.cardNumbers}
-                          drawnNumbers={drawnNumbersSet}
-                          initialMarkedNumbers={slot.marks}
-                          isPlayerCard={currentUser?.uid === slot.uid && gameRoom.status === 'playing'}
-                          onMarkNumber={handleMarkNumber}
-                        />
-                      ) : (
-                        <Box sx={{ p: 2, border: '1px dashed', borderColor: 'grey', flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                          <Typography>{t('waitingPlayer')}</Typography>
-                        </Box>
-                      )}
-                    </Box>
-                  );
-                })}
-              </Box>
-            </Paper>
+                      </h4>
+                    </div>
+                    
+                    {slot.cardNumbers.length === 25 ? (
+                      <BingoCard
+                        numbers={slot.cardNumbers}
+                        drawnNumbers={drawnNumbersSet}
+                        initialMarkedNumbers={slot.marks}
+                        isPlayerCard={currentUser?.uid === slot.uid && gameRoom.status === 'playing'}
+                        onMarkNumber={handleMarkNumber}
+                      />
+                    ) : (
+                      <div className="card-modern p-8 flex-center h-64 border-2 border-dashed border-gray-300">
+                        <div className="text-center text-gray-400">
+                          <div className="w-12 h-12 mx-auto mb-3 bg-gray-100 rounded-full flex-center">
+                            <span className="text-gray-400">👤</span>
+                          </div>
+                          <p className="font-medium">{t('waitingPlayer')}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </>
         ) : gameRoom!.status === 'waiting' || gameRoom!.status === 'ready' ? (
-          <Paper elevation={3} sx={{ p: 3, mt: 2, textAlign: 'center' }}>
-            <CircularProgress size={48} sx={{ mb: 2 }} />
-            <Typography variant="h6" gutterBottom>
+          <div className="card-modern p-8 text-center">
+            <div className="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              {gameRoom.status === 'waiting' ? 'Oyuncular Bekleniyor' : 'Oyun Başlatılıyor'}
+            </h3>
+            <p className="text-gray-600">
               {gameRoom.status === 'waiting'
                 ? t('waitingToJoin')
                 : t('game.waiting', { current: currentPlayersCount, required: gameRoom.maxPlayers || 2 })}
-            </Typography>
-          </Paper>
+            </p>
+          </div>
         ) : (
-          <Typography sx={{ mt: 2 }} color="error"><i>{t('Error: Game in unexpected state or card data missing.')}</i></Typography>
+          <div className="card-modern p-6 text-center">
+            <div className="w-16 h-16 bg-error-100 rounded-full flex-center mx-auto mb-4">
+              <span className="text-error-500 text-2xl">⚠️</span>
+            </div>
+            <p className="text-error-600 font-medium">{t('Error: Game in unexpected state or card data missing.')}</p>
+          </div>
         )}
 
-        {/* Back to Lobby Button - Use new handler */}
-        <Box sx={{ mt: 4, textAlign: 'center' }}>
-            <Button variant="outlined" onClick={handleLeaveGame}>
-                {t('backToLobby')}
-            </Button>
-        </Box>
-      </Box>
+        {/* Back to Lobby Button */}
+        <div className="text-center mt-8">
+          <button onClick={handleLeaveGame} className="btn-secondary">
+            <span>🏠</span>
+            {t('backToLobby')}
+          </button>
+        </div>
+      </div>
 
       {/* Game Over Overlay - Rendered conditionally with animation */}
       <AnimatePresence>
@@ -1102,40 +1319,64 @@ const GameScreen: React.FC = () => {
 
       <AchievementModal open={achievementsOpen} achievements={achievements} onClose={() => setAchievementsOpen(false)} />
 
-      {/* Chat Toggle Button and Drawer */}
-      <IconButton
-        color="primary"
+      {/* Modern Chat Toggle Button */}
+      <button
         onClick={() => setOpenChat(true)}
-        sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1300 }}
+        className="fixed bottom-6 right-6 w-14 h-14 bg-primary-500 hover:bg-primary-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex-center z-50"
       >
-        <ChatBubbleIcon />
-      </IconButton>
-      <Drawer
-        anchor="right"
-        open={openChat}
-        onClose={() => setOpenChat(false)}
-      >
-        <Box sx={{ width: 400, height: '100%', p: 2, bgcolor: 'background.paper' }}>
-          <Chat roomId={roomId!} />
-        </Box>
-      </Drawer>
-
-      {(gameRoom?.startDateTime || gameRoom?.endDateTime) && (
-        <Box sx={{ mb: 2, display: 'flex', gap: 2 }}>
-          {gameRoom.startDateTime && (
-            <Typography variant="body2">
-              {t('lobby.startDateTime')}: {gameRoom.startDateTime.toDate().toLocaleString()}
-            </Typography>
-          )}
-          {gameRoom.endDateTime && (
-            <Typography variant="body2">
-              {t('lobby.endDateTime')}: {gameRoom.endDateTime.toDate().toLocaleString()}
-            </Typography>
-          )}
-        </Box>
+        <span className="text-xl">💬</span>
+      </button>
+      
+      {/* Modern Chat Drawer */}
+      {openChat && (
+        <div className="fixed inset-0 z-50 lg:inset-auto lg:right-0 lg:top-0 lg:h-full lg:w-96">
+          <div className="absolute inset-0 bg-black bg-opacity-50 lg:hidden" onClick={() => setOpenChat(false)}></div>
+          <div className="relative h-full w-full bg-white lg:w-96 lg:shadow-xl">
+            <div className="flex-between p-4 border-b">
+              <h3 className="text-lg font-bold text-gray-900">💬 Sohbet</h3>
+              <button 
+                onClick={() => setOpenChat(false)}
+                className="w-8 h-8 flex-center text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="h-full pb-20">
+              <Chat roomId={roomId!} />
+            </div>
+          </div>
+        </div>
       )}
 
-    </Container>
+      {/* Game Timestamps Footer */}
+      {(gameRoom?.startDateTime || gameRoom?.endDateTime) && (
+        <div className="container-mobile mt-8 pb-6">
+          <div className="card-modern p-3">
+            <div className="flex flex-col sm:flex-row gap-2 text-sm text-gray-600">
+              {gameRoom.startDateTime && (
+                <div className="flex items-center gap-2">
+                  <span>🎮</span>
+                  <span>{t('lobby.startDateTime')}: {gameRoom.startDateTime.toDate().toLocaleString()}</span>
+                </div>
+              )}
+              {gameRoom.endDateTime && (
+                <div className="flex items-center gap-2">
+                  <span>🏁</span>
+                  <span>{t('lobby.endDateTime')}: {gameRoom.endDateTime.toDate().toLocaleString()}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      <SettingsModal 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)} 
+      />
+
+    </div>
   );
 };
 

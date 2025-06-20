@@ -1,121 +1,375 @@
-# Proje Mimarisi: Gerçek Zamanlı Çok Oyunculu Tombala Oyunu
+# Architecture: QuickBingo™ Online - Modern Mobile-First Multiplayer Game
 
-## 1. Giriş
-Bu belge, **React**, **TypeScript** ve **Firebase** kullanarak geliştirilmiş gerçek zamanlı çok oyunculu Tombala (Bingo) oyununun tüm mimari detaylarını ele alır. Amaç; kullanıcıların benzersiz oda kodu ile lobi oluşturarak veya katılarak 5×5 tombala kartları üzerinde satır veya tam kart (full house) tamamlamalarını sağlamaktır.
+## 🏗 Architectural Overview
 
-## 2. Teknoloji Yığını
-- **Frontend**
-  - React (Vite)
-  - TypeScript
-  - MUI & Tailwind CSS (UI)
-  - framer-motion (animasyon)
-  - react-router-dom (yönlendirme)
-  - i18next & react-i18next (çoklu dil desteği)
-  - Howler (ses efektleri), react-hot-toast (bildirimler)
-- **Backend & Gerçek Zamanlı Veri**
-  - Firebase Realtime Database
-  - Firebase Authentication (E-posta/Şifre, Facebook)
-- **Geliştirme Araçları**
-  - Node.js & npm/yarn
-  - ESLint, Prettier
-  - Jest (birim testleri), Cypress (E2E testleri)
-  - Git & CI/CD (GitHub Actions)
+QuickBingo™ Online is a **modern, mobile-first, real-time multiplayer Bingo game** built with cutting-edge web technologies. The architecture emphasizes performance, scalability, and exceptional user experience across all devices.
 
-## 3. Mimari Katmanlar
-1. **İstemci (Client) Katmanı**  
-   React bileşenleri, Context API, i18n, stil kütüphaneleri.
-2. **Servis (Service) Katmanı**  
-   `authService`, `lobbyService`, `gameService` gibi modüller; HTTP yerine Firebase SDK'sı.
-3. **Veri (Data) Katmanı**  
-   Firebase Realtime Database'de oyun odası (`rooms/{roomId}`), kullanıcılar (`users`), sohbet mesajları (`messages`), çekilen sayılar (`drawnNumbers`) saklanır.
+## 🛠 Technology Stack
 
-## 4. Temel Bileşenler
-- **Auth/**  
-  Kullanıcı kaydı, giriş ve oturum kontrolü (`SignUp`, `Login`, `useAuth` hook).
-- **Lobby/**  
-  `LobbyList` (aktif lobiler), `CreateLobby`, `JoinLobby` bileşenleri.
-- **GameRoom/**  
-  - **Board**: Kart çizimi ve işaretleme mantığı.  
-  - **Cell**: Her hücre. Tıklanabilir işaret fonksiyonu.  
-  - **Controls**: "Hazırım" butonu, host yönetimi, zamanlayıcı.  
-  - **DrawnNumbers**: Çekilen sayıların güncel listesi.  
-  - **PlayerList**: Oyuncu durumu ve sıra bilgisi.  
-  - **ChatBox**: Gerçek zamanlı sohbet.
-- **Shared/**  
-  Navbar, Footer, ThemeToggle, LanguageSwitcher gibi genel bileşenler.
+### Core Frontend Technologies
+- **React 18.3.1** - Latest React with Concurrent Features
+- **TypeScript 5.5** - Type-safe development
+- **Vite 5.4** - Lightning-fast build tool and dev server
+- **Modern ES2022** - Latest JavaScript features
 
-## 5. Veri Akışı ve Oyun Mantığı
-1. **Kimlik Doğrulama**  
-   `authService.getCurrentUser` ile kullanıcı kontrol edilir, `AppContext`'e kaydedilir.
-2. **Lobi Yönetimi**  
-   `lobbyService.getLobbies` ile lobiler listelenir. Oda oluşturma/katılma `rooms/{roomId}` yolunda yeni veri oluşturur/günceller.
-3. **Gerçek Zamanlı Dinleme**  
-   `GameRoom` bileşeninde `onValue` dinleyicisi ilgili `roomId` verilerini izler.
-4. **Oyun Döngüsü (Host)**  
-   Host, belirlenen aralıklarla (`DRAW_INTERVAL`) `gameService.drawNumber` ile yeni sayı çeker. Bu sayı Firebase'de `drawnNumbers` ve `currentNumber` alanlarına eklenir.
-5. **Hücre İşaretleme & Kazanma Kontrolü**  
-   - `handleCellClick` ile hücre tıklanır; Firebase'de `marks` güncellenir.  
-   - `gameService.checkWin` fonksiyonu satır veya full house kontrolü yapar; kazanan varsa `winner` alanına yazılır.
-6. **Sohbet ve Bildirimler**  
-   - `messages` düğümüne eklenen yeni mesajlar tüm oyunculara anında iletilir.  
-   - react-hot-toast ile arayüzde toast bildirimleri gösterilir.
+### Styling & UI Framework
+- **Tailwind CSS 3.4** - Utility-first CSS framework
+- **Custom CSS System** - Modern design tokens and utilities
+- **Framer Motion 11** - Smooth animations and transitions
+- **CSS Grid & Flexbox** - Modern layout systems
+- **Material-UI 7.0** - Legacy components (being phased out)
 
-## 6. Lobi Yaşam Döngüsü
-1. **Oluşturma**: Kullanıcı `CreateLobby` ile yeni bir lobi oluşturur. Firestore dokümanı `gameRooms/{roomId}` içinde:
-   - `creatorUid`, `creatorName`, `roomName`, `maxPlayers`, `type` (`normal` | `event`), `password` (opsiyonel)
-   - `startTime` ve `endTime` (etkinlik odaları için), `creatorLeftAt` (henüz katılmadıysa `null`), `status: 'waiting'`
-2. **Çıkış (Leave Lobby)**: Kurucu `LeaveLobby` düğmesine basınca `creatorLeftAt = serverTimestamp()` set edilir.
-3. **Zamanlanmış Kapanış (Cloud Function)**:
-   - `closeExpiredRooms` fonksiyonu her saat çalışır.
-   - `normal` lobilerde `creatorLeftAt ≤ now - 8h` ise `status = 'closed'` olarak güncellenir.
-   - `event` lobilerde `endTime ≤ now` ise `status = 'closed'` olur.
-4. **Otomatik Filtre & Sıralama (Client)**:
-   - `useWaitingRooms` hook'u yalnızca `status == 'waiting'` olan lobeleri çeker.
-   - `displayRooms` listesi:
-     - Süresi geçen normal lobiler (`creatorLeftAt` + 8h) ve bitmiş event lobiler (`endTime`) filtrelenir.
-     - Event lobiler (`startTime` artan), normal lobiler (`createdAt` azalan) olarak sıralanır.
+### Mobile & PWA
+- **Capacitor 6** - Native mobile app wrapper
+- **PWA Support** - Progressive Web App capabilities
+- **Touch Optimization** - Mobile-first interaction design
+- **Safe Area Support** - Modern device compatibility
 
-## 7. Firebase Realtime Database Yapısı (Örnek)
-```json
-{
-  "rooms": {
-    "{roomId}": {
-      "hostId": "user123",
-      "roomCode": "ABCD",
-      "status": "playing", // waiting, playing, finished
-      "currentNumber": 17,
-      "drawnNumbers": [5,9,17],
-      "winner": null,
-      "players": {
-        "user123": { "name":"Ali","marks":[[false,...],...],"ready":true,"color":"#4CAF50" }
-      },
-      "messages": {
-        "msg1": {"userId":"user456","text":"Merhaba!","timestamp":1680000000000}
-      }
-    }
-  }
+### Backend & Real-time Database
+- **Firebase Firestore** - NoSQL real-time database
+- **Firebase Authentication** - Secure user management
+- **Firebase Cloud Functions** - Serverless backend logic
+- **Firebase Hosting** - Static site hosting
+- **Firebase Storage** - File and media storage
+
+### Development & Build Tools
+- **ESLint** - Code linting and style enforcement
+- **PostCSS** - CSS processing and optimization
+- **Autoprefixer** - CSS vendor prefixes
+- **TypeScript Compiler** - Type checking and compilation
+
+## 🏛 Architectural Layers
+
+### 1. Presentation Layer (UI Components)
+```
+src/components/
+├── Auth/           # Authentication components
+├── Game/           # Game-specific components  
+├── Lobby/          # Lobby management
+└── UI/             # Reusable UI components
+```
+
+### 2. Business Logic Layer (Contexts & Hooks)
+```
+src/contexts/       # React Context providers
+src/hooks/          # Custom React hooks
+src/utils/          # Pure utility functions
+```
+
+### 3. Data Access Layer (Services)
+```
+src/services/       # Firebase integration
+src/types/          # TypeScript definitions
+```
+
+### 4. Styling Layer (Design System)
+```
+src/styles/
+├── tokens.css      # Design tokens (colors, spacing, typography)
+└── utilities.css   # Custom utility classes
+```
+
+## 🎮 Game Architecture
+
+### Real-time Game Flow
+```mermaid
+graph TD
+    A[User Action] --> B[React Component]
+    B --> C[Context/Hook]
+    C --> D[Firebase Service]
+    D --> E[Firestore Database]
+    E --> F[Real-time Listener]
+    F --> G[UI Update]
+    G --> H[Animation/Feedback]
+```
+
+### Game State Management
+1. **Local State** - Component-level UI state
+2. **Context State** - Global app state (auth, settings, notifications)
+3. **Firebase State** - Real-time game data synchronization
+4. **Persistent State** - localStorage for user preferences
+
+### Game Room Lifecycle
+```typescript
+interface GameRoomState {
+  status: 'waiting' | 'ready' | 'playing' | 'stopping' | 'finished'
+  players: Player[]
+  drawnNumbers: number[]
+  winner?: string
+  settings: RoomSettings
 }
 ```
 
-## 8. Proje Dizini
-```
-game_tombala/
-├── public/          # Statik varlıklar ve i18n JSON'ları
-├── src/
-│   ├── assets/      # Resimler, fontlar
-│   ├── components/  # UI bileşenleri
-│   ├── contexts/    # AppContext
-│   ├── services/    # authService, lobbyService, gameService
-│   ├── i18n/        # Çeviri dosyaları ve yapılandırma
-│   ├── App.tsx      # Ana uygulama bileşeni ve yönlendirme
-│   └── main.tsx     # Uygulama giriş noktası
-├── .env.example     # Ortam değişkenleri şablonu
-├── package.json     # Bağımlılıklar ve script'ler
-└── README.md        # Proje tanıtımı
+## 📱 Mobile-First Architecture
+
+### Responsive Design Strategy
+- **Mobile-first CSS** - Start with mobile, enhance for larger screens
+- **Touch-friendly UI** - Minimum 44px touch targets
+- **Gesture support** - Swipe, pinch, tap optimizations
+- **Performance focus** - Optimized for mobile hardware
+
+### Progressive Web App (PWA) Features
+- **Service Worker** - Offline caching and background sync
+- **Web App Manifest** - Native app-like installation
+- **Push Notifications** - Engagement and game updates
+- **Background Sync** - Data synchronization when offline
+
+### Native Mobile Integration (Capacitor)
+```typescript
+// Example: Native device features
+import { Haptics, ImpactStyle } from '@capacitor/haptics'
+import { LocalNotifications } from '@capacitor/local-notifications'
+
+// Haptic feedback for game interactions
+await Haptics.impact({ style: ImpactStyle.Medium })
+
+// Native notifications
+await LocalNotifications.schedule({
+  notifications: [{
+    title: 'Game Started!',
+    body: 'Your Bingo game has begun',
+    id: 1
+  }]
+})
 ```
 
-## 9. Gelecekteki İyileştirmeler
-- Oyun mantığını Firebase Cloud Functions'a taşıyarak hile riskini azaltma.  
-- Birim ve E2E test kapsamını artırma (Jest, Cypress).  
-- UI/UX ve erişilebilirlik (a11y) geliştirmeleri.  
-- CI/CD entegrasyonu (GitHub Actions).
+## 🎨 Modern Design System
+
+### Design Tokens Architecture
+```css
+/* Color System */
+:root {
+  --color-primary-500: #6366f1;    /* Indigo */
+  --color-secondary-500: #f59e0b;  /* Amber */
+  --color-success-500: #10b981;    /* Emerald */
+  --color-error-500: #ef4444;      /* Red */
+}
+
+/* Spacing Scale */
+:root {
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-4: 1rem;      /* 16px */
+  --space-8: 2rem;      /* 32px */
+}
+
+/* Typography Scale */
+:root {
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+}
+```
+
+### Component Architecture
+```typescript
+// Modern functional component with TypeScript
+interface BingoCardProps {
+  numbers: number[]
+  drawnNumbers: Set<number>
+  onMarkNumber: (number: number) => void
+  isPlayerCard: boolean
+}
+
+export const BingoCard: React.FC<BingoCardProps> = ({
+  numbers,
+  drawnNumbers,
+  onMarkNumber,
+  isPlayerCard
+}) => {
+  // Component logic
+  return (
+    <div className="grid grid-cols-5 gap-2 p-4">
+      {/* Card implementation */}
+    </div>
+  )
+}
+```
+
+## 🔄 Real-time Data Architecture
+
+### Firebase Firestore Schema
+```typescript
+// Game Room Document Structure
+interface GameRoom {
+  id: string
+  creatorUid: string
+  creatorName: string
+  status: GameStatus
+  maxPlayers: number
+  currentPlayers: Player[]
+  drawnNumbers: number[]
+  gameSettings: GameSettings
+  createdAt: Timestamp
+  updatedAt: Timestamp
+}
+
+// Real-time Listeners
+const useGameRoom = (roomId: string) => {
+  const [gameRoom, setGameRoom] = useState<GameRoom | null>(null)
+  
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      doc(db, 'gameRooms', roomId),
+      (doc) => setGameRoom(doc.data() as GameRoom)
+    )
+    return unsubscribe
+  }, [roomId])
+  
+  return gameRoom
+}
+```
+
+### State Synchronization Strategy
+1. **Optimistic Updates** - Immediate UI feedback
+2. **Real-time Sync** - Firebase listeners for live updates
+3. **Conflict Resolution** - Server-side validation
+4. **Error Recovery** - Automatic retry mechanisms
+
+## ⚙️ Settings & Configuration Architecture
+
+### Settings Management System
+```typescript
+interface SettingsState {
+  // Audio & Music
+  masterVolume: number
+  musicVolume: number
+  soundEffects: boolean
+  
+  // Appearance  
+  theme: 'light' | 'dark' | 'auto'
+  language: 'tr' | 'en'
+  animations: boolean
+  
+  // Game Settings
+  autoMarkNumbers: boolean
+  showOpponentProgress: boolean
+  
+  // Notifications
+  pushNotifications: boolean
+  gameInvites: boolean
+}
+
+// Settings Context with persistence
+export const SettingsProvider: React.FC = ({ children }) => {
+  const [settings, setSettings] = useState<SettingsState>(defaultSettings)
+  
+  // Auto-save to localStorage
+  useEffect(() => {
+    localStorage.setItem('quickbingo-settings', JSON.stringify(settings))
+  }, [settings])
+  
+  return (
+    <SettingsContext.Provider value={{ settings, updateSetting }}>
+      {children}
+    </SettingsContext.Provider>
+  )
+}
+```
+
+## 🚀 Performance Architecture
+
+### Code Splitting Strategy
+```typescript
+// Route-based code splitting
+const MainLobby = lazy(() => import('./components/Lobby/MainLobby'))
+const GameScreen = lazy(() => import('./components/Game/GameScreen'))
+
+// Component-based splitting for large features
+const SettingsModal = lazy(() => import('./components/UI/SettingsModal'))
+```
+
+### Bundle Optimization
+- **Tree Shaking** - Remove unused code
+- **Dynamic Imports** - Load features on demand
+- **Asset Optimization** - Compress images and fonts
+- **Service Worker Caching** - Cache static assets
+
+### Real-time Performance
+- **Firebase Connection** - Persistent WebSocket connection
+- **Data Batching** - Batch multiple updates
+- **Local Caching** - Cache frequently accessed data
+- **Memory Management** - Cleanup listeners on unmount
+
+## 🔒 Security Architecture
+
+### Authentication & Authorization
+```typescript
+// Firebase Auth integration
+export const useAuth = () => {
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user)
+    })
+    return unsubscribe
+  }, [])
+  
+  return { currentUser, signIn, signOut, signUp }
+}
+```
+
+### Data Security
+- **Firestore Security Rules** - Server-side data validation
+- **Input Sanitization** - XSS protection
+- **Rate Limiting** - Prevent abuse
+- **HTTPS Only** - Encrypted data transmission
+
+## 📦 Build & Deployment Architecture
+
+### Development Workflow
+```bash
+# Local development
+npm run dev           # Vite dev server with HMR
+
+# Testing
+npm run test          # Jest unit tests
+npm run e2e           # Cypress integration tests
+
+# Production build
+npm run build         # Optimized production bundle
+npm run preview       # Preview production build
+```
+
+### Deployment Pipeline
+1. **Code Push** → GitHub repository
+2. **CI/CD Pipeline** → GitHub Actions
+3. **Build & Test** → Automated testing
+4. **Deploy Web** → Firebase Hosting
+5. **Deploy Mobile** → App Store deployment
+
+### Mobile App Build Process
+```bash
+# Capacitor sync
+npm run build
+npx cap sync
+
+# iOS build
+npx cap open ios
+# Xcode → Archive → Upload to App Store
+
+# Android build  
+npx cap open android
+# Android Studio → Generate Signed Bundle
+```
+
+## 🔮 Future Architecture Enhancements
+
+### Planned Improvements
+- **WebRTC Integration** - Voice chat during games
+- **AI Players** - Single-player mode with bots
+- **Tournament System** - Bracket-style competitions
+- **Spectator Mode** - Watch games in progress
+- **Replay System** - Save and replay game sessions
+
+### Scalability Considerations
+- **Database Sharding** - Distribute game rooms
+- **CDN Integration** - Global asset delivery
+- **Microservices** - Separate game logic services
+- **Kubernetes** - Container orchestration for scaling
+
+---
+
+This architecture provides a solid foundation for a modern, scalable, and maintainable multiplayer gaming experience while maintaining excellent performance across all devices and platforms. 🎯🏗️

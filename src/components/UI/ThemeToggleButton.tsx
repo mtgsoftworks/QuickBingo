@@ -1,39 +1,62 @@
-import React from 'react'; // React: JSX ve bileşen tanımları için
-import { IconButton, Tooltip } from '@mui/material'; // IconButton, Tooltip: MUI buton ve ipucu bileşenleri
-import Brightness4Icon from '@mui/icons-material/Brightness4'; // Brightness4Icon: koyu tema ikonu
-import Brightness7Icon from '@mui/icons-material/Brightness7'; // Brightness7Icon: açık tema ikonu
-import { useThemeMode } from '../../contexts/ThemeModeContext'; // useThemeMode: tema modu durumu ve toggle fonksiyonu sağlayan custom hook
-import { useTranslation } from 'react-i18next'; // useTranslation: çoklu dil desteği için hook
+import React, { useState } from 'react';
+import { useThemeMode } from '../../contexts/ThemeModeContext';
+import { useTranslation } from 'react-i18next';
 
-// ThemeToggleButton: tema modunu değiştiren buton bileşeni
+// Modern Theme Toggle Button Component
 const ThemeToggleButton: React.FC = () => {
-  // mode: 'light' veya 'dark', toggleThemeMode: mod değiştirme fonksiyonu
   const { mode, toggleThemeMode } = useThemeMode();
-  // t: çeviri fonksiyonu
   const { t } = useTranslation();
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const handleToggle = () => {
+    setIsAnimating(true);
+    toggleThemeMode();
+    setTimeout(() => setIsAnimating(false), 300);
+  };
 
   return (
-    // Tooltip: buton üzerine gelince açıklama gösterir
-    <Tooltip title={t(mode === 'dark' ? 'switchToLight' : 'switchToDark')}>
-      <>
-        {/* Tooltip title için çeviri anahtarları eklenmeli */}
-        <IconButton
-          // toggleThemeMode: tema modunu değiştirir
-          onClick={toggleThemeMode}
-          color="inherit"
-          sx={{
-            // Consistent styling with MuteButton
-            bgcolor: 'rgba(0, 0, 0, 0.5)',
-            '&:hover': {
-              bgcolor: 'rgba(0, 0, 0, 0.7)',
-            },
-          }}
-        >
-          {/* Tema moduna göre ikon seçimi */}
-          {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-        </IconButton>
-      </>
-    </Tooltip>
+    <button
+      onClick={handleToggle}
+      className="relative w-12 h-12 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full transition-all duration-200 flex-center group"
+      title={t(mode === 'dark' ? 'switchToLight' : 'switchToDark')}
+    >
+      {/* Icon Container with Animation */}
+      <div className={`relative transition-transform duration-300 ${isAnimating ? 'scale-0' : 'scale-100'}`}>
+        {mode === 'dark' ? (
+          // Sun Icon for Light Mode
+          <div className="relative">
+            <div className="w-5 h-5 bg-yellow-400 rounded-full"></div>
+            {/* Sun rays */}
+            <div className="absolute inset-0">
+              {[0, 45, 90, 135, 180, 225, 270, 315].map((angle) => (
+                <div
+                  key={angle}
+                  className="absolute w-0.5 h-2 bg-yellow-400 rounded-full"
+                  style={{
+                    transform: `rotate(${angle}deg) translateY(-8px)`,
+                    transformOrigin: 'center 8px'
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        ) : (
+          // Moon Icon for Dark Mode
+          <div className="relative w-5 h-5">
+            <div className="w-5 h-5 bg-white rounded-full"></div>
+            <div className="absolute top-0 right-0 w-4 h-4 bg-gray-800 rounded-full transform translate-x-0.5 -translate-y-0.5"></div>
+          </div>
+        )}
+      </div>
+
+      {/* Ripple Effect */}
+      <div className="absolute inset-0 rounded-full bg-white opacity-0 group-active:opacity-20 transform scale-0 group-active:scale-100 transition-all duration-150"></div>
+
+      {/* Tooltip on Hover */}
+      <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-black bg-opacity-75 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+        {t(mode === 'dark' ? 'switchToLight' : 'switchToDark')}
+      </div>
+    </button>
   );
 };
 

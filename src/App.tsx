@@ -15,6 +15,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { SoundProvider } from './contexts/SoundContext';
 import { ThemeModeProvider } from './contexts/ThemeModeContext';
+import { SettingsProvider } from './contexts/SettingsContext';
 import PrivateRoute from './components/Auth/PrivateRoute';
 import Login from './components/Auth/Login';
 import Signup from './components/Auth/Signup';
@@ -68,8 +69,10 @@ function App() {
         <NotificationProvider>
           {/* SoundProvider: ses efektleri ve mute durumunu sağlar */}
           <SoundProvider>
-            {/* ThemeModeProvider: koyu/açık tema modunu kontrol eder */}
-            <ThemeModeProvider>
+            {/* SettingsProvider: uygulama ayarlarını yönetir */}
+            <SettingsProvider>
+              {/* ThemeModeProvider: koyu/açık tema modunu kontrol eder */}
+              <ThemeModeProvider>
               {/* Toaster: global toast bildirimi bileşeni */}
               <Toaster 
                 position="top-right"
@@ -101,10 +104,14 @@ function App() {
               )}
               {/* Uygulama rotaları: giriş, kayıt, lobi ve oyun ekranları */}
               <Routes>
+                {/* Ana sayfa - Login'e yönlendir */}
+                <Route path="/" element={<Login />} />
                 {/* Giriş ekranı */}
                 <Route path="/giris" element={<Login />} />
+                <Route path="/login" element={<Login />} />
                 {/* Kayıt ekranı */}
                 <Route path="/kayit" element={<Signup />} />
+                <Route path="/signup" element={<Signup />} />
                 {/* Ana lobi, sadece giriş yapan kullanıcılar erişebilir */}
                 <Route 
                   path="/lobby" 
@@ -125,7 +132,8 @@ function App() {
                 />
                 <Route path="*" element={<Login />} />
               </Routes>
-            </ThemeModeProvider>
+              </ThemeModeProvider>
+            </SettingsProvider>
           </SoundProvider>
         </NotificationProvider>
       </AuthProvider>

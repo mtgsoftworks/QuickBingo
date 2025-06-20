@@ -105,54 +105,75 @@ const BingoCard: React.FC<BingoCardProps> = ({
     onMarkNumber(number, !isCurrentlyMarked);
   };
 
-  // getCellStyle: numaraya göre hücre stilini seçer (işaretli, vurgulu, normal)
-  const getCellStyle = (number: number) => {
+  // getCellClass: numaraya göre hücre CSS sınıfını seçer (işaretli, vurgulu, normal)
+  const getCellClass = (number: number) => {
     const isPending = pendingNumbers.has(number);
     const isMarked = markedNumbers.has(number);
     
-    return {
-      cursor: isPlayerCard ? 'pointer' : 'default',
-      backgroundColor: isMarked ? '#4caf50' : isPending ? '#bbdefb' : 'white',
-      color: isMarked ? 'white' : 'black',
-      fontWeight: isPending ? 'bold' : 'normal',
-      borderRadius: '4px',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: '100%',
-      aspectRatio: '1/1', // Kare hücreler oluşturur
-      boxShadow: isPending ? '0 0 0 2px #2196f3 inset' : 'none',
-      transition: 'all 0.2s ease',
-      '&:hover': {
-        opacity: isPlayerCard ? 0.9 : 1,
-        transform: isPlayerCard ? 'scale(1.05)' : 'none',
-      }
-    };
+    let baseClass = "aspect-square flex-center rounded-lg font-semibold text-lg transition-all duration-200 border-2 touch-target";
+    
+    if (isMarked) {
+      baseClass += " bg-success-500 text-white border-success-600 shadow-md";
+    } else if (isPending) {
+      baseClass += " bg-primary-100 text-primary-700 border-primary-300 font-bold animate-pulse shadow-lg ring-2 ring-primary-500 ring-opacity-50";
+    } else {
+      baseClass += " bg-white text-gray-800 border-gray-200 hover:border-gray-300";
+    }
+    
+    if (isPlayerCard) {
+      baseClass += " cursor-pointer hover:scale-105 hover:shadow-md active:scale-95";
+    }
+    
+    return baseClass;
   };
 
-  // Kart hücrelerini grid şeklinde render eder
+  // Modern mobile-optimized bingo card
   return (
-    <Paper sx={{ p: 2, height: '100%' }}>
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(5, 1fr)', // 5 eşit sütun oluştur
-          gap: 1,
-          width: '100%',
-          height: '100%'
-        }}
-      >
+    <div className="card-modern p-4 h-full bg-gradient-to-br from-white to-gray-50">
+      {/* Card Header */}
+      <div className="flex-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 bg-primary-500 rounded-full"></div>
+          <span className="text-sm font-medium text-gray-600">
+            {isPlayerCard ? 'Kartınız' : 'Rakip Kartı'}
+          </span>
+        </div>
+        <div className="text-xs text-gray-400">
+          {Array.from(markedNumbers).length}/25
+        </div>
+      </div>
+      
+      {/* Numbers Grid */}
+      <div className="grid grid-cols-5 gap-2 w-full h-full">
         {numbers.map((number, index) => (
-          <Box
+          <button
             key={`${number}-${index}`}
-            sx={getCellStyle(number)}
+            className={getCellClass(number)}
             onClick={() => handleNumberClick(number)}
+            disabled={!isPlayerCard}
+            style={{
+              minHeight: 'var(--touch-target-min)',
+              fontSize: 'clamp(14px, 4vw, 18px)' // Responsive font size
+            }}
           >
             {number}
-          </Box>
+          </button>
         ))}
-      </Box>
-    </Paper>
+      </div>
+      
+      {/* Card Footer - Progress Indicator */}
+      <div className="mt-4 flex items-center gap-2">
+        <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+          <div 
+            className="h-full bg-gradient-to-r from-primary-500 to-success-500 transition-all duration-300 rounded-full"
+            style={{ width: `${(Array.from(markedNumbers).length / 25) * 100}%` }}
+          ></div>
+        </div>
+        <span className="text-xs font-medium text-gray-500">
+          {Math.round((Array.from(markedNumbers).length / 25) * 100)}%
+        </span>
+      </div>
+    </div>
   );
 };
 

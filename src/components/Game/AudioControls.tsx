@@ -47,24 +47,31 @@ const AudioControls: React.FC<AudioControlsProps> = ({
   };
 
   return (
-    // Ses kontrolleri butonu ve opsiyonel kaydırıcı arayüzü
-    <div className="fixed bottom-4 right-4 flex flex-col items-end">
+    // Modern mobile audio controls
+    <div className="fixed bottom-20 right-6 flex flex-col items-end z-40">
       {showVolumeControl && (
-        <div className="p-3 bg-white rounded-lg shadow-lg mb-2 transform transition-all duration-200">
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.1"
-            value={volume}
-            onChange={handleVolumeChange}
-            className="w-24 accent-indigo-600"
-          />
+        <div className="card-modern p-4 mb-3 bg-white shadow-xl">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-gray-700">Ses</span>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.1"
+              value={volume}
+              onChange={handleVolumeChange}
+              className="w-20 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+              style={{
+                background: `linear-gradient(to right, var(--color-primary-500) 0%, var(--color-primary-500) ${volume * 100}%, var(--color-gray-300) ${volume * 100}%, var(--color-gray-300) 100%)`
+              }}
+            />
+            <span className="text-xs text-gray-500 min-w-[3ch]">{Math.round(volume * 100)}%</span>
+          </div>
         </div>
       )}
+      
       <button
         onClick={(e) => {
-          // Tek tıklama: kaydırıcıyı aç/kapa; çift tıklama: sessiz/aç işlemi
           if (onVolumeChange) {
             handleVolumeClick(e);
           } else {
@@ -72,7 +79,11 @@ const AudioControls: React.FC<AudioControlsProps> = ({
           }
         }}
         onDoubleClick={onToggle}
-        className="p-3 bg-white rounded-full shadow-lg hover:bg-gray-50 transition-colors duration-200"
+        className={`w-12 h-12 rounded-full shadow-lg transition-all duration-200 flex-center ${
+          isMuted 
+            ? 'bg-gray-100 text-gray-500 hover:bg-gray-200' 
+            : 'bg-white text-primary-600 hover:bg-primary-50 hover:scale-105'
+        }`}
         title={isMuted ? "Sessiz mod kaldır" : "Ses ayarla veya çift tıkla sessize al"}
       >
         {getVolumeIcon()}

@@ -67,6 +67,10 @@ import FacebookIcon from '@mui/icons-material/Facebook'; // Facebook paylaşım
 import TwitterIcon from '@mui/icons-material/Twitter'; // Twitter paylaşım
 import WhatsAppIcon from '@mui/icons-material/WhatsApp'; // WhatsApp paylaşım
 import TelegramIcon from '@mui/icons-material/Telegram'; // Telegram paylaşım
+import SettingsIcon from '@mui/icons-material/Settings'; // Settings icon
+import LockIcon from '@mui/icons-material/Lock';
+import EventIcon from '@mui/icons-material/Event';
+import { SettingsModal } from '../UI/SettingsModal';
 
 // Interface for Room data
 interface WaitingRoom extends DocumentData {
@@ -130,6 +134,8 @@ const MainLobby: React.FC = () => {
   const [editRoomId, setEditRoomId] = useState<string | null>(null);
   // State for join dialog selected room
   const [selectedRoomForJoin, setSelectedRoomForJoin] = useState<WaitingRoom | null>(null);
+  // Settings modal state
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
@@ -159,6 +165,13 @@ const MainLobby: React.FC = () => {
       return `Kalan: ${h}h ${m}m ${s}s`;
     }
     return 'Etkinlik sona erdi';
+  };
+
+  // Room status helper
+  const getRoomStatusInfo = (room: WaitingRoom) => {
+    const playerCount = [room.creatorUid, room.player2Uid, room.player3Uid, room.player4Uid].filter(Boolean).length;
+    const maxPlayers = room.maxPlayers || 2;
+    return { playerCount, maxPlayers };
   };
 
   const handleLogout = async () => {
@@ -432,164 +445,419 @@ const MainLobby: React.FC = () => {
     }
   };
 
-  // Bileşenin render ettiği JSX: odalar listesi, dialoglar ve butonlar
+  // Modern mobile-first lobby interface
   return (
-    // Lobinin ana konteyneri: başlık, mesaj, butonlar ve odalar listesi
-    <Container maxWidth="md">
-      <Box sx={{ my: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        {/* Lobinin başlığı */}
-        <Typography variant="h4" component="h1" gutterBottom>
-          {t('lobbyTitle')}
-        </Typography>
-        {/* Eğer giriş yapılmışsa hoşgeldiniz mesajı göster */}
-        {currentUser && (
-          <Typography variant="h6" gutterBottom>
-            {t('welcome', { name: currentUser.displayName || 'User' })}
-          </Typography>
-        )}
-        {/* Hata varsa ve join dialog değilse hata mesajı göster */}
+    <div className="min-h-screen min-h-dvh bg-background safe-area-inset">
+      {/* Header with Gradient */}
+      <div className="bg-gradient-to-r from-primary-500 to-secondary-500 safe-area-top">
+        <div className="container-mobile py-6">
+          <div className="flex-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-white/20 rounded-xl flex-center backdrop-blur-sm">
+                <AddCircleIcon className="text-white w-6 h-6" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-white">{t('lobbyTitle')}</h1>
+                <p className="text-white/80 text-sm">QuickBingo™ Online</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsSettingsOpen(true)}
+                className="w-10 h-10 flex-center rounded-lg hover:bg-white/10 text-white transition-colors"
+              >
+                <SettingsIcon className="w-5 h-5" />
+              </button>
+              <button
+                onClick={handleLogout}
+                className="btn-ghost text-white hover:bg-white/10 border-white/20"
+              >
+                Çıkış
+              </button>
+            </div>
+          </div>
+          
+          {/* Welcome Message */}
+          {currentUser && (
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+              <p className="text-white font-medium">
+                {t('welcome', { name: currentUser.displayName || 'User' })}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="container-mobile py-6">
+        {/* Error Message */}
         {error && !openJoinDialog && (
-          <Typography color="error" sx={{ mb: 2 }}>
-            {error}
-          </Typography>
+          <div className="mb-6 p-4 bg-error-50 border border-error-200 rounded-xl animate-slide-up">
+            <p className="text-error-600 text-sm font-medium">{error}</p>
+          </div>
         )}
-        {/* Oyun oluşturma ve kodla katılma butonları */}
-        <Box sx={{ my: 3, display: 'flex', gap: 2 }}>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddCircleIcon />}
-            size="large"
-            sx={{ borderRadius: 2 }}
-            aria-label={t('createNewGame')}
+
+        {/* Main Action Buttons */}
+        <div className="grid gap-4 mb-8">
+          <button
             onClick={handleOpenCreateDialog}
             disabled={hasOwnRoom}
+            className={`btn-primary w-full btn-lg ripple ${hasOwnRoom ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            {t('createNewGame')}
-          </Button>
+            <AddCircleIcon className="w-5 h-5" />
+            <span>{t('createNewGame')}</span>
+          </button>
+          
           {hasOwnRoom && (
-            <Typography variant="body2" color="error" sx={{ alignSelf: 'center' }}>
-              {t('lobby.oneLobbyRule')}
-            </Typography>
+            <div className="p-3 bg-warning-50 border border-warning-200 rounded-lg">
+              <p className="text-warning-700 text-sm font-medium text-center">
+                {t('lobby.oneLobbyRule')}
+              </p>
+            </div>
           )}
-          <Button
-            variant="outlined"
-            color="secondary"
-            startIcon={<LoginIcon />}
-            size="large"
-            sx={{ borderRadius: 2 }}
-            aria-label={t('joinGameCode')}
+          
+          <button
             onClick={() => handleOpenJoinDialog()}
+            className="btn-secondary w-full btn-lg ripple"
           >
-            {t('joinGameCode')}
-          </Button>
-        </Box>
+            <LoginIcon className="w-5 h-5" />
+            <span>{t('joinGameCode')}</span>
+          </button>
+        </div>
 
-        {/* Bekleyen odalar başlığı */}
-        <Typography variant="h5" sx={{ mt: 4, mb: 2 }}>{t('availableGames')}</Typography>
-        <Paper elevation={2} sx={{ width: '100%', p: 2 }}>
+        {/* Rooms Section */}
+        <div className="space-y-4">
+          <div className="flex-between">
+            <h2 className="text-xl font-bold text-gray-900">{t('availableGames')}</h2>
+            <div className="text-sm text-gray-500">
+              {displayRooms.length} oda
+            </div>
+          </div>
+          
           {loadingRooms ? (
-            <Box sx={{display: 'flex', justifyContent: 'center', my: 3}}><CircularProgress /></Box>
+            <div className="flex-center py-12">
+              <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
           ) : displayRooms.length === 0 ? (
-            <Typography sx={{textAlign: 'center', my: 3}}>{t('noWaitingRooms')}</Typography>
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex-center mx-auto mb-4">
+                <AddCircleIcon className="w-8 h-8 text-gray-400" />
+              </div>
+              <p className="text-gray-500 font-medium">{t('noWaitingRooms')}</p>
+              <p className="text-gray-400 text-sm mt-1">İlk odayı sen oluştur!</p>
+            </div>
           ) : (
-            <List>
-              {displayRooms.map((room, index) => (
-                <React.Fragment key={room.id}>
-                  <ListItem disablePadding secondaryAction={
-                    currentUser && room.creatorUid === currentUser.uid ? (
-                      <>
-                        <IconButton edge="end" aria-label="edit" onClick={e => { e.stopPropagation(); handleOpenEditDialog(room); }}>
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton edge="end" aria-label="copy" onClick={async e => { e.stopPropagation(); await navigator.clipboard.writeText(room.id); showNotification(t('lobby.copied'), 'success'); }}>
-                          <ContentCopyIcon />
-                        </IconButton>
-                        <IconButton edge="end" aria-label="delete" onClick={e => { e.stopPropagation(); handleDeleteRoom(room.id); }}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </>
-                    ) : null
-                  }>
-                    <ListItemButton onClick={() => handleOpenJoinDialog(room)}>
-                      <ListItemText
-                        primary={room.roomName ? t('lobby.roomNameDisplay', { name: room.roomName }) : t('lobby.roomByIdDisplay', { id: room.id })}
-                        secondary={
-                          <>
-                            {t('createdBy', { name: room.creatorName })}
-                            {room.type === 'event' && (
-                              <Typography variant="caption" display="block">
-                                {getEventDetail(room)}
-                              </Typography>
+            <div className="space-y-3">
+              {displayRooms.map((room, index) => {
+                const { playerCount, maxPlayers } = getRoomStatusInfo(room);
+                const isOwner = currentUser && room.creatorUid === currentUser.uid;
+                
+                return (
+                  <div
+                    key={room.id}
+                    className="card-modern p-4 hover:shadow-md transition-all duration-200 animate-slide-up"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <div className="flex items-start justify-between">
+                      <button
+                        onClick={() => handleOpenJoinDialog(room)}
+                        className="flex-1 text-left"
+                      >
+                        <div className="flex items-start gap-3">
+                          {/* Room Type Icon */}
+                          <div className={`w-10 h-10 rounded-lg flex-center ${
+                            room.type === 'event' 
+                              ? 'bg-secondary-100 text-secondary-600' 
+                              : 'bg-primary-100 text-primary-600'
+                          }`}>
+                            {room.type === 'event' ? (
+                              <EventIcon className="w-5 h-5" />
+                            ) : (
+                              <AddCircleIcon className="w-5 h-5" />
                             )}
-                          </>
-                        }
-                      />
-                    </ListItemButton>
-                  </ListItem>
-                  {index < displayRooms.length - 1 && <Divider />}
-                </React.Fragment>
-              ))}
-            </List>
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            {/* Room Name */}
+                            <h3 className="font-semibold text-gray-900 truncate">
+                              {room.roomName || `Oda #${room.id}`}
+                            </h3>
+                            
+                            {/* Creator */}
+                            <p className="text-sm text-gray-500 mt-1">
+                              {t('createdBy', { name: room.creatorName })}
+                            </p>
+                            
+                            {/* Event Details */}
+                            {room.type === 'event' && (
+                              <p className="text-xs text-secondary-600 font-medium mt-1">
+                                {getEventDetail(room)}
+                              </p>
+                            )}
+                            
+                            {/* Player Count & Status */}
+                            <div className="flex items-center gap-3 mt-2">
+                              <div className="flex items-center gap-1">
+                                <div className="w-2 h-2 bg-success-500 rounded-full"></div>
+                                <span className="text-xs text-gray-600">
+                                  {playerCount}/{maxPlayers} oyuncu
+                                </span>
+                              </div>
+                              
+                              {room.password && (
+                                <div className="flex items-center gap-1">
+                                  <LockIcon className="w-3 h-3 text-gray-400" />
+                                  <span className="text-xs text-gray-500">Şifreli</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                      
+                      {/* Owner Actions */}
+                      {isOwner && (
+                        <div className="flex items-center gap-1 ml-3">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleOpenEditDialog(room); }}
+                            className="w-8 h-8 flex-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                          >
+                            <EditIcon className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              await navigator.clipboard.writeText(room.id);
+                              showNotification(t('lobby.copied'), 'success');
+                            }}
+                            className="w-8 h-8 flex-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                          >
+                            <ContentCopyIcon className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDeleteRoom(room.id); }}
+                            className="w-8 h-8 flex-center rounded-lg hover:bg-error-50 text-gray-400 hover:text-error-600 transition-colors"
+                          >
+                            <DeleteIcon className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
-        </Paper>
+        </div>
+      </div>
 
-        {/* Dialog for Joining a Game by Code */}
-        <Dialog open={openJoinDialog} onClose={handleCloseJoinDialog} fullWidth maxWidth="xs">
-          <DialogTitle>{t('joinRoomTitle')}</DialogTitle>
-          <DialogContent>
-            <DialogContentText sx={{ mb: 2 }}>
-              {t('joinRoomPrompt')}
-            </DialogContentText>
-            {error && (
-              <Typography color="error" sx={{ mb: 2 }}>
-                {error}
-              </Typography>
-            )}
-            <TextField
-              autoFocus
-              margin="dense"
-              id="roomCode"
-              label={t('roomCodeLabel')}
-              type="text"
-              fullWidth
-              variant="outlined"
-              value={roomCodeToJoin}
-              onChange={(e) => setRoomCodeToJoin(e.target.value)}
-            />
-            {/* Only show password field if the selected room has a password */}
-            {selectedRoomForJoin?.password && (
-              <TextField
-                margin="dense"
-                id="roomPassword"
-                label={t('lobby.passwordLabel')}
-                type="password"
-                fullWidth
-                variant="outlined"
-                value={joinPassword}
-                onChange={e => setJoinPassword(e.target.value)}
-              />
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button
-              onClick={handleCloseJoinDialog}
-              size="large"
-              variant="outlined"
-              startIcon={<CancelIcon />}
-              aria-label={t('cancelButton')}
-              sx={{ borderRadius: 2 }}
-            >
-              {t('cancelButton')}
-            </Button>
-            <Button onClick={handleConfirmJoinGame} variant="contained" size="large" sx={{ borderRadius: 2 }} disabled={!roomCodeToJoin.trim()}>
-              {t('joinButton')}
-            </Button>
-          </DialogActions>
-        </Dialog>
+        {/* Modern Join Room Modal */}
+        {openJoinDialog && (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 animate-fade-in">
+            <div className="card-modern max-w-md w-full p-6 animate-scale-in">
+              <h2 className="text-xl font-bold text-gray-900 mb-2">{t('joinRoomTitle')}</h2>
+              <p className="text-gray-600 text-sm mb-6">{t('joinRoomPrompt')}</p>
+              
+              {error && (
+                <div className="mb-4 p-3 bg-error-50 border border-error-200 rounded-lg">
+                  <p className="text-error-600 text-sm">{error}</p>
+                </div>
+              )}
+              
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  placeholder={t('roomCodeLabel')}
+                  value={roomCodeToJoin}
+                  onChange={(e) => setRoomCodeToJoin(e.target.value)}
+                  className="input-modern"
+                  autoFocus
+                />
+                
+                {selectedRoomForJoin?.password && (
+                  <input
+                    type="password"
+                    placeholder={t('lobby.passwordLabel')}
+                    value={joinPassword}
+                    onChange={e => setJoinPassword(e.target.value)}
+                    className="input-modern"
+                  />
+                )}
+                
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={handleCloseJoinDialog}
+                    className="btn-secondary flex-1"
+                  >
+                    <CancelIcon className="w-4 h-4" />
+                    <span>{t('cancelButton')}</span>
+                  </button>
+                  <button
+                    onClick={handleConfirmJoinGame}
+                    disabled={!roomCodeToJoin.trim()}
+                    className="btn-primary flex-1"
+                  >
+                    <span>{t('joinButton')}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
-        {/* Dialog for Creating a New Game */}
-        <Dialog open={openCreateDialog} onClose={handleCloseCreateDialog} fullWidth maxWidth="sm">
+        {/* Modern Create Room Modal */}
+        {openCreateDialog && (
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+            <div className="card-modern max-w-lg w-full max-h-[90vh] overflow-y-auto animate-scale-in">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 rounded-t-2xl">
+                <h2 className="text-xl font-bold">{t('lobby.createRoomDialogTitle')}</h2>
+                <p className="text-indigo-100 text-sm mt-1">{t('lobby.enterRoomNamePlaceholder')}</p>
+              </div>
+              
+              <div className="p-6 space-y-6">
+                {/* Error Display */}
+                {createError && (
+                  <div className="p-3 bg-error-50 border border-error-200 rounded-lg">
+                    <p className="text-error-600 text-sm">{createError}</p>
+                  </div>
+                )}
+                
+                {/* Room Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('lobby.roomNameLabel')}
+                  </label>
+                  <input
+                    type="text"
+                    value={newRoomName}
+                    onChange={(e) => setNewRoomName(e.target.value)}
+                    placeholder="Odana bir isim ver..."
+                    className="input-modern"
+                    autoFocus
+                  />
+                </div>
+                
+                {/* Player Count */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('lobby.selectPlayerCount')}
+                  </label>
+                  <select
+                    value={newMaxPlayers}
+                    onChange={(e) => setNewMaxPlayers(Number(e.target.value))}
+                    className="input-modern"
+                  >
+                    <option value={2}>2 {t('lobby.players')}</option>
+                    <option value={3}>3 {t('lobby.players')}</option>
+                    <option value={4}>4 {t('lobby.players')}</option>
+                  </select>
+                </div>
+                
+                {/* Room Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    {t('lobby.selectType')}
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setNewRoomType('normal')}
+                      className={`p-4 rounded-lg border-2 transition-colors ${
+                        newRoomType === 'normal'
+                          ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="text-center">
+                        <span className="block text-lg mb-1">🎮</span>
+                        <span className="text-sm font-medium">{t('lobby.normal')}</span>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewRoomType('event')}
+                      className={`p-4 rounded-lg border-2 transition-colors ${
+                        newRoomType === 'event'
+                          ? 'border-purple-500 bg-purple-50 text-purple-700'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="text-center">
+                        <span className="block text-lg mb-1">📅</span>
+                        <span className="text-sm font-medium">{t('lobby.event')}</span>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Event Date Times - Only show for event type */}
+                {newRoomType === 'event' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t('lobby.startDateTime')}
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={newStartDateTime ? new Date(newStartDateTime).toISOString().slice(0, 16) : ''}
+                        onChange={(e) => setNewStartDateTime(e.target.value ? new Date(e.target.value).toISOString() : '')}
+                        className="input-modern"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t('lobby.endDateTime')}
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={newEndDateTime ? new Date(newEndDateTime).toISOString().slice(0, 16) : ''}
+                        onChange={(e) => setNewEndDateTime(e.target.value ? new Date(e.target.value).toISOString() : '')}
+                        className="input-modern"
+                      />
+                    </div>
+                  </div>
+                )}
+                
+                {/* Password */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('lobby.passwordLabel')} <span className="text-gray-400">(İsteğe bağlı)</span>
+                  </label>
+                  <input
+                    type="password"
+                    value={newRoomPassword}
+                    onChange={(e) => setNewRoomPassword(e.target.value)}
+                    placeholder="Oda şifresi..."
+                    className="input-modern"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Şifre en az 3 karakter olmalıdır</p>
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={handleCloseCreateDialog}
+                    className="btn-secondary flex-1"
+                  >
+                    <CancelIcon className="w-4 h-4" />
+                    <span>{t('common.cancel')}</span>
+                  </button>
+                  <button
+                    onClick={handleConfirmCreateGame}
+                    disabled={!newRoomName.trim()}
+                    className="btn-primary flex-1"
+                  >
+                    <AddCircleIcon className="w-4 h-4" />
+                    <span>{t('lobby.createButton')}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <div style={{display: 'none'}}> {/* Hidden MUI dialogs */}
+        <Dialog open={false} onClose={handleCloseCreateDialog} fullWidth maxWidth="sm">
           <DialogTitle>{t('lobby.createRoomDialogTitle')}</DialogTitle>
           <DialogContent>
             <DialogContentText sx={{ mb: 2 }}>
@@ -818,12 +1086,14 @@ const MainLobby: React.FC = () => {
             {snackbarMessage}
           </Alert>
         </Snackbar>
-        {/* Global logout button styling */}
-        <Button sx={{ mt: 5, borderRadius: 2 }} size="large" variant="outlined" color="error" onClick={handleLogout}>
-          {t('logoutButton')}
-        </Button>
-      </Box>
-    </Container>
+        </div> {/* End hidden MUI dialogs */}
+        
+        {/* Settings Modal */}
+        <SettingsModal 
+          isOpen={isSettingsOpen} 
+          onClose={() => setIsSettingsOpen(false)} 
+        />
+    </div>
   );
 };
 
