@@ -1,0 +1,164 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Yardımcı fonksiyonlar
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function isValidString(value, minLength, maxLength) {
+      return value is string && value.size() >= minLength && value.size() <= maxLength;
+    }
+    
+    function isValidTimestamp(value) {
+      return value is timestamp;
+    }
+    
+    // gameRooms koleksiyonu - Oyun odaları (gevşetilmiş kurallar)
+    match /gameRooms/{roomId} {
+      // Okuma: Kimlik doğrulaması yapılmış herkes
+      allow read: if isAuthenticated();
+      
+      // Oluşturma: Sadece kimlik doğrulaması yeterli
+      allow create: if isAuthenticated();
+      
+      // Güncelleme: Kimlik doğrulaması yapılmış herkes
+      allow update: if isAuthenticated();
+      
+      // Silme: Kimlik doğrulaması yapılmış herkes
+      allow delete: if isAuthenticated();
+      
+      // Oda verisi doğrulama
+      function isValidRoomData(data) {
+        return data.keys().hasAll(['creatorUid', 'creatorName', 'status', 'createdAt']) &&
+               isValidString(data.creatorUid, 1, 50) &&
+               isValidString(data.creatorName, 1, 50) &&
+               data.status in ['waiting', 'ready', 'playing', 'stopping', 'finished'] &&
+               isValidTimestamp(data.createdAt) &&
+               (!('roomName' in data) || isValidString(data.roomName, 1, 100)) &&
+               (!('maxPlayers' in data) || (data.maxPlayers is number && data.maxPlayers >= 2 && data.maxPlayers <= 4)) &&
+               (!('type' in data) || data.type in ['normal', 'event']) &&
+               (!('password' in data) || isValidString(data.password, 0, 50)) &&
+               (!('readyP1' in data) || data.readyP1 is bool) &&
+               (!('readyP2' in data) || data.readyP2 is bool) &&
+               (!('readyP3' in data) || data.readyP3 is bool) &&
+               (!('readyP4' in data) || data.readyP4 is bool);
+      }
+      
+      // Oda güncelleme doğrulama
+      function isValidRoomUpdate() {
+        return !('creatorUid' in request.resource.data) ||
+               request.resource.data.creatorUid == resource.data.creatorUid;
+      }
+      
+      // Sohbet mesajları alt koleksiyonu (gevşetilmiş)
+      match /chatMessages/{messageId} {
+        // Okuma: Kimlik doğrulaması yapılmış herkes
+        allow read: if isAuthenticated();
+        
+        // Oluşturma: Sadece kimlik doğrulaması yeterli
+        allow create: if isAuthenticated();
+        
+        // Güncelleme ve silme: Kimlik doğrulaması yapılmış herkes
+        allow update, delete: if isAuthenticated();
+        
+        function isValidMessage(data) {
+          return data.keys().hasAll(['userId', 'userName', 'text', 'timestamp']) &&
+                 isValidString(data.userId, 1, 50) &&
+                 isValidString(data.userName, 1, 50) &&
+                 isValidString(data.text, 1, 500) &&
+                 isValidTimestamp(data.timestamp);
+        }
+      }
+    }
+    
+    // Oda üyeliği kontrolü
+    function isRoomMember(roomId) {
+      let roomData = get(/databases/$(database)/documents/gameRooms/$(roomId)).data;
+      return request.auth.uid == roomData.creatorUid ||
+             request.auth.uid == roomData.player2Uid ||
+             request.auth.uid == roomData.player3Uid ||
+             request.auth.uid == roomData.player4Uid;
+    }
+    
+    // users koleksiyonu - Kullanıcı profilleri (gevşetilmiş)
+    match /users/{userId} {
+      // Okuma: Kimlik doğrulaması yapılmış herkes
+      allow read: if isAuthenticated();
+      
+      // Oluşturma/Güncelleme: Kimlik doğrulaması yapılmış herkes
+      allow write: if isAuthenticated();
+      
+      function isValidUserData(data) {
+        return (!('displayName' in data) || isValidString(data.displayName, 1, 50)) &&
+               (!('username' in data) || isValidString(data.username, 1, 30)) &&
+               (!('email' in data) || isValidString(data.email, 5, 100)) &&
+               (!('xp' in data) || data.xp is number);
+      }
+      
+      // Kullanıcı başarımları alt koleksiyonu (gevşetilmiş)
+      match /tombalaAchievements/{achievementId} {
+        // Okuma: Kimlik doğrulaması yapılmış herkes
+        allow read: if isAuthenticated();
+        
+        // Yazma: Kimlik doğrulaması yapılmış herkes
+        allow write: if isAuthenticated();
+        
+        function isValidAchievement(data) {
+          return data.keys().hasAll(['title', 'unlockedAt']) &&
+                 isValidString(data.title, 1, 100) &&
+                 isValidTimestamp(data.unlockedAt);
+        }
+      }
+    }
+    
+    // tombalaStats koleksiyonu - Oyun istatistikleri (gevşetilmiş)
+    match /tombalaStats/{statId} {
+      // Okuma: Kimlik doğrulaması yapılmış herkes
+      allow read: if isAuthenticated();
+      
+      // Oluşturma: Kimlik doğrulaması yapılmış herkes
+      allow create: if isAuthenticated();
+      
+      // Güncelleme/Silme: Kimlik doğrulaması yapılmış herkes
+      allow update, delete: if isAuthenticated();
+      
+      function isValidStats(data) {
+        return data.keys().hasAll(['userId', 'score', 'playedAt']) &&
+               isValidString(data.userId, 1, 50) &&
+               data.score is number &&
+               data.score >= 0 &&
+               (!('cardsMatched' in data) || (data.cardsMatched is number && data.cardsMatched >= 0)) &&
+               (!('duration' in data) || (data.duration is number && data.duration >= 0)) &&
+               (!('success' in data) || data.success is bool) &&
+               isValidTimestamp(data.playedAt);
+      }
+    }
+    
+    // achievementsProgress koleksiyonu - Başarım ilerlemeleri (gevşetilmiş)
+    match /achievementsProgress/{progressId} {
+      // Okuma: Kimlik doğrulaması yapılmış herkes
+      allow read: if isAuthenticated();
+      
+      // Yazma: Kimlik doğrulaması yapılmış herkes
+      allow write: if isAuthenticated();
+      
+      function isValidProgress(data) {
+        return data.keys().hasAll(['userId', 'game', 'achievementId', 'progress', 'target']) &&
+               isValidString(data.userId, 1, 50) &&
+               isValidString(data.game, 1, 50) &&
+               isValidString(data.achievementId, 1, 100) &&
+               data.progress is number &&
+               data.target is number &&
+               data.progress >= 0 &&
+               data.target > 0 &&
+               (!('unlocked' in data) || data.unlocked is bool);
+      }
+    }
+  }
+} 
