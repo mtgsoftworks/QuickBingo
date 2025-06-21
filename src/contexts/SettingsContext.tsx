@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export interface SettingsState {
   // Audio & Music
@@ -108,6 +109,7 @@ interface SettingsProviderProps {
 
 export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) => {
   const [settings, setSettings] = useState<SettingsState>(defaultSettings);
+  const { i18n } = useTranslation();
 
   // Load settings from localStorage on mount
   useEffect(() => {
@@ -116,11 +118,15 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
       try {
         const parsed = JSON.parse(savedSettings);
         setSettings({ ...defaultSettings, ...parsed });
+        // Set initial language from settings
+        if (parsed.language && parsed.language !== i18n.language) {
+          i18n.changeLanguage(parsed.language);
+        }
       } catch (error) {
         console.error('Error loading settings:', error);
       }
     }
-  }, []);
+  }, [i18n]);
 
   // Save settings to localStorage whenever they change
   useEffect(() => {
@@ -132,6 +138,11 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
       ...prev,
       [key]: value
     }));
+    
+    // Handle language change
+    if (key === 'language') {
+      i18n.changeLanguage(value as string);
+    }
   };
 
   const resetSettings = () => {

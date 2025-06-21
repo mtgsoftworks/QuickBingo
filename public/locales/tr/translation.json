@@ -212,5 +212,12 @@
   "errorDeclaringWinnerDisconnect": "Bağlantı kesilmesi sonrası kazanan belirlenirken hata oluştu.",
   "errorFailedToUpdate": "Lobi güncellenirken hata oluştu",
   "errorFailedToLeave": "Lobiden ayrılırken hata oluştu",
-  "roomFull": "Bu oda dolu (maksimum {{maxPlayers}} oyuncu)."
+  "roomFull": "Bu oda dolu (maksimum {{maxPlayers}} oyuncu).",
+  "settings": {
+    "title": "Ayarlar",
+    "language": "Dil",
+    "languageChanged": "Dil değiştirildi",
+    "turkish": "Türkçe",
+    "english": "English"
+  }
 } 

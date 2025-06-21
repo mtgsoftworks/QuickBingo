@@ -71,6 +71,10 @@ import SettingsIcon from '@mui/icons-material/Settings'; // Settings icon
 import LockIcon from '@mui/icons-material/Lock';
 import EventIcon from '@mui/icons-material/Event';
 import { SettingsModal } from '../UI/SettingsModal';
+import Footer from '../UI/Footer';
+import GameRules from '../Game/GameRules';
+import { useAdMob } from '../../hooks/useAdMob';
+import LanguageSwitcher from '../UI/LanguageSwitcher';
 
 // Interface for Room data
 interface WaitingRoom extends DocumentData {
@@ -136,10 +140,26 @@ const MainLobby: React.FC = () => {
   const [selectedRoomForJoin, setSelectedRoomForJoin] = useState<WaitingRoom | null>(null);
   // Settings modal state
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isGameRulesOpen, setIsGameRulesOpen] = useState(false);
+  
+  // AdMob integration
+  const { showBanner, hideBanner, showInterstitial, isNative } = useAdMob();
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Show banner ad on mount
+  useEffect(() => {
+    if (isNative) {
+      showBanner();
+    }
+    return () => {
+      if (isNative) {
+        hideBanner();
+      }
+    };
+  }, [isNative]);
   // Etkinlik lobisi detayını hesaplama
   const getEventDetail = (room: WaitingRoom): string => {
     const startMs = room.startTime?.toMillis() ?? 0;
@@ -242,6 +262,11 @@ const MainLobby: React.FC = () => {
       handleCloseCreateDialog();
       setCreatedRoomCode(docRef.id);
       setShowCreatedDialog(true);
+      
+      // Show interstitial ad after room creation
+      if (isNative) {
+        setTimeout(() => showInterstitial(), 1000);
+      }
     } catch (e) {
       console.error('Error creating game room:', e);
       setCreateError(t('errorFailedToCreate'));
@@ -461,13 +486,21 @@ const MainLobby: React.FC = () => {
                 <p className="text-white/80 text-sm">QuickBingo™ Online</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setIsSettingsOpen(true)}
-                className="w-10 h-10 flex-center rounded-lg hover:bg-white/10 text-white transition-colors"
-              >
-                <SettingsIcon className="w-5 h-5" />
-              </button>
+                          <div className="flex items-center gap-2">
+                <LanguageSwitcher />
+                <button
+                  onClick={() => setIsGameRulesOpen(true)}
+                  className="w-10 h-10 flex-center rounded-lg hover:bg-white/10 text-white transition-colors"
+                  title="Oyun Kuralları"
+                >
+                  <span className="text-lg">📖</span>
+                </button>
+                <button
+                  onClick={() => setIsSettingsOpen(true)}
+                  className="w-10 h-10 flex-center rounded-lg hover:bg-white/10 text-white transition-colors"
+                >
+                  <SettingsIcon className="w-5 h-5" />
+                </button>
               <button
                 onClick={handleLogout}
                 className="btn-ghost text-white hover:bg-white/10 border-white/20"
@@ -935,74 +968,131 @@ const MainLobby: React.FC = () => {
             </Button>
           </DialogActions>
         </Dialog>
-        {/* Oluşturma Sonrası Onay Paneli */}
-        <Dialog open={showCreatedDialog} onClose={() => setShowCreatedDialog(false)} fullWidth maxWidth="sm">
-          <DialogTitle>{t('lobby.createdTitle')}</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              {t('lobby.createdMessage', { code: createdRoomCode })}
-            </DialogContentText>
-            {/* Oda Kodu ve Şifre Alanları */}
-            <TextField
-              label={t('lobby.roomCodeLabel')}
-              value={createdRoomCode || ''}
-              InputProps={{ readOnly: true }}
-              fullWidth
-              variant="outlined"
-              margin="dense"
-            />
-            {newRoomPassword && (
-              <TextField
-                label={t('lobby.passwordLabel')}
-                value={newRoomPassword}
-                InputProps={{ readOnly: true }}
-                fullWidth
-                variant="outlined"
-                margin="dense"
-                sx={{ mt: 2 }}
-              />
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => {
-              const textToCopy = `Oda Kodu: ${createdRoomCode}` + (newRoomPassword ? `\nŞifre: ${newRoomPassword}` : '');
-              navigator.clipboard.writeText(textToCopy);
-              setSnackbarMessage(t('common.copySuccess'));
-              setSnackbarSeverity('success');
-              setSnackbarOpen(true);
-            }}>
-              {t('common.copy')}
-            </Button>
-            <Button onClick={() => { setShowCreatedDialog(false); navigate(`/game/${createdRoomCode}`); }}>
-              {t('lobby.enterNow')}
-            </Button>
-            {/* Sosyal Paylaşım: Oda Kodu ve Şifre */}
-            <IconButton onClick={() => {
-              const text = encodeURIComponent(`Oda Kodu: ${createdRoomCode}` + (newRoomPassword ? `\nŞifre: ${newRoomPassword}` : ''));
-              window.open(`https://www.facebook.com/sharer/sharer.php?quote=${text}`, '_blank');
-            }}>
-              <FacebookIcon />
-            </IconButton>
-            <IconButton onClick={() => {
-              const text = encodeURIComponent(`Oda Kodu: ${createdRoomCode}` + (newRoomPassword ? `\nŞifre: ${newRoomPassword}` : ''));
-              window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
-            }}>
-              <TwitterIcon />
-            </IconButton>
-            <IconButton onClick={() => {
-              const text = encodeURIComponent(`Oda Kodu: ${createdRoomCode}` + (newRoomPassword ? `\nŞifre: ${newRoomPassword}` : ''));
-              window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
-            }}>
-              <WhatsAppIcon />
-            </IconButton>
-            <IconButton onClick={() => {
-              const text = encodeURIComponent(`Oda Kodu: ${createdRoomCode}` + (newRoomPassword ? `\nŞifre: ${newRoomPassword}` : ''));
-              window.open(`https://t.me/share/url?text=${text}`, '_blank');
-            }}>
-              <TelegramIcon />
-            </IconButton>
-          </DialogActions>
-        </Dialog>
+        {/* Modern Room Created Success Modal */}
+        {showCreatedDialog && (
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+            <div className="card-modern max-w-md w-full animate-scale-in">
+              {/* Success Header */}
+              <div className="bg-gradient-to-r from-emerald-500 to-green-600 text-white p-6 rounded-t-2xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex-center">
+                    <span className="text-2xl">🎉</span>
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold">{t('lobby.createdTitle')}</h2>
+                    <p className="text-emerald-100 text-sm">{t('lobby.createdMessage', { code: createdRoomCode })}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-6 space-y-4">
+                {/* Room Code */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('lobby.roomCodeLabel')}
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      readOnly
+                      value={createdRoomCode || ''}
+                      className="input-modern flex-1 font-mono text-center font-bold text-lg"
+                    />
+                    <button
+                      onClick={() => {
+                        const textToCopy = `Oda Kodu: ${createdRoomCode}` + (newRoomPassword ? `\nŞifre: ${newRoomPassword}` : '');
+                        navigator.clipboard.writeText(textToCopy);
+                        setSnackbarMessage(t('common.copySuccess'));
+                        setSnackbarSeverity('success');
+                        setSnackbarOpen(true);
+                      }}
+                      className="btn-secondary !px-3"
+                    >
+                      <ContentCopyIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Password (if set) */}
+                {newRoomPassword && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('lobby.passwordLabel')}
+                    </label>
+                    <input
+                      readOnly
+                      value={newRoomPassword}
+                      type="password"
+                      className="input-modern font-mono text-center"
+                    />
+                  </div>
+                )}
+                
+                {/* Social Share */}
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-3">Arkadaşlarını davet et:</p>
+                  <div className="flex gap-2 justify-center">
+                    <button
+                      onClick={() => {
+                        const text = encodeURIComponent(`Oda Kodu: ${createdRoomCode}` + (newRoomPassword ? `\nŞifre: ${newRoomPassword}` : ''));
+                        window.open(`https://www.facebook.com/sharer/sharer.php?quote=${text}`, '_blank');
+                      }}
+                      className="w-10 h-10 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex-center transition-colors"
+                    >
+                      <FacebookIcon className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        const text = encodeURIComponent(`Oda Kodu: ${createdRoomCode}` + (newRoomPassword ? `\nŞifre: ${newRoomPassword}` : ''));
+                        window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
+                      }}
+                      className="w-10 h-10 bg-blue-400 text-white rounded-lg hover:bg-blue-500 flex-center transition-colors"
+                    >
+                      <TwitterIcon className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        const text = encodeURIComponent(`Oda Kodu: ${createdRoomCode}` + (newRoomPassword ? `\nŞifre: ${newRoomPassword}` : ''));
+                        window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+                      }}
+                      className="w-10 h-10 bg-green-500 text-white rounded-lg hover:bg-green-600 flex-center transition-colors"
+                    >
+                      <WhatsAppIcon className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        const text = encodeURIComponent(`Oda Kodu: ${createdRoomCode}` + (newRoomPassword ? `\nŞifre: ${newRoomPassword}` : ''));
+                        window.open(`https://t.me/share/url?text=${text}`, '_blank');
+                      }}
+                      className="w-10 h-10 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex-center transition-colors"
+                    >
+                      <TelegramIcon className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => setShowCreatedDialog(false)}
+                    className="btn-secondary flex-1"
+                  >
+                    Daha Sonra
+                  </button>
+                  <button
+                    onClick={() => { 
+                      setShowCreatedDialog(false); 
+                      navigate(`/game/${createdRoomCode}`); 
+                    }}
+                    className="btn-primary flex-1"
+                  >
+                    <span>🎮</span>
+                    <span>{t('lobby.enterNow')}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         {/* Lobi Düzenleme Dialogu */}
         <Dialog open={openEditDialog} onClose={handleCloseEditDialog}>
           <DialogTitle>{t('lobby.editRoomDialogTitle')}</DialogTitle>
@@ -1093,6 +1183,15 @@ const MainLobby: React.FC = () => {
           isOpen={isSettingsOpen} 
           onClose={() => setIsSettingsOpen(false)} 
         />
+        
+        {/* Game Rules Modal */}
+        <GameRules 
+          isOpen={isGameRulesOpen} 
+          onClose={() => setIsGameRulesOpen(false)} 
+        />
+        
+        {/* Footer */}
+        <Footer />
     </div>
   );
 };

@@ -6,10 +6,12 @@
  * @returns {JSX.Element} Oyun sonu arayüzü.
  */
 
-import React from 'react'; // React: JSX desteği için
+import React, { useState } from 'react'; // React: JSX desteği için
 import { Typography } from '@mui/material'; // Typography: metin göstermek için UI bileşeni
 import { motion } from 'framer-motion'; // motion: animasyonlu elementler için
 import { useTranslation } from 'react-i18next'; // useTranslation: çoklu dil desteği için Hook
+import { Gift } from 'lucide-react'; // Icon for bonus button
+import { useAdMob } from '../../hooks/useAdMob';
 
 // GameOverOverlayProps: oyun sonucu, kazanan ve geri sayım süresi için prop tipleri
 interface GameOverOverlayProps {
@@ -21,6 +23,8 @@ interface GameOverOverlayProps {
 // Modern mobile game over overlay
 const GameOverOverlay: React.FC<GameOverOverlayProps> = ({ winnerName, isWinner, countdownSeconds }) => {
   const { t } = useTranslation();
+  const { showRewarded, isNative } = useAdMob();
+  const [bonusEarned, setBonusEarned] = useState(false);
 
   return (
     <motion.div
@@ -84,6 +88,45 @@ const GameOverOverlay: React.FC<GameOverOverlayProps> = ({ winnerName, isWinner,
               {winnerName || 'N/A'}
             </p>
           </div>
+
+          {/* Bonus Ad Button */}
+          {isNative && !bonusEarned && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+              className="mb-6"
+            >
+              <button
+                onClick={async () => {
+                  const success = await showRewarded();
+                  if (success) {
+                    setBonusEarned(true);
+                    // Here you could add bonus points to user's account
+                  }
+                }}
+                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-full font-bold flex items-center gap-2 mx-auto hover:from-purple-600 hover:to-pink-600 transition-all"
+              >
+                <Gift className="w-5 h-5" />
+                <span>Bonus +50 Puan İçin Reklam İzle!</span>
+              </button>
+            </motion.div>
+          )}
+
+          {/* Bonus Earned Message */}
+          {bonusEarned && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="mb-6 p-3 bg-gradient-to-r from-green-100 to-emerald-100 border border-green-200 rounded-lg"
+            >
+              <p className="text-green-700 font-bold flex items-center gap-2 justify-center">
+                <span>🎉</span>
+                <span>+50 Bonus Puan Kazandın!</span>
+                <span>🎉</span>
+              </p>
+            </motion.div>
+          )}
 
           {/* Countdown */}
           <div className="bg-gray-100 rounded-lg p-4">

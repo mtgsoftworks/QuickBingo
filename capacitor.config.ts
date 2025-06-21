@@ -22,6 +22,11 @@ const config: CapacitorConfig = {
       smallIcon: "ic_stat_icon_config_sample",
       iconColor: "#7c3aed",
       sound: "beep.wav"
+    },
+    AdMob: {
+      appId: "ca-app-pub-2923372871861852~1234567890", // Your AdMob App ID
+      testingDevices: ["YOUR_DEVICE_ID"], // Add your device ID for testing
+      initializeForTesting: false // Set to true for development
     }
   }
 };

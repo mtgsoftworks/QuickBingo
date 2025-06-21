@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom'; // useNavigate hook'unu içe akt
 import { useTranslation } from 'react-i18next'; // useTranslation hook'unu içe aktar
 import LanguageSwitcher from '../UI/LanguageSwitcher'; // Dil değiştirme bileşenini içe aktar
 import { LogIn, Users } from 'lucide-react'; // LogIn ve Users ikonlarını içe aktar
+import Footer from '../UI/Footer'; // Footer bileşenini içe aktar
 
 const Login: React.FC = () => {
   const { t } = useTranslation();
@@ -162,6 +163,9 @@ const Login: React.FC = () => {
               {t('auth.loginDisclaimer')}
             </p>
           </div>
+          
+          {/* Copyright Footer */}
+          <Footer className="mt-8" />
         </div>
       </div>
     </div>

@@ -191,6 +191,14 @@
     "@babel/helper-validator-identifier" "^7.25.7"
     to-fast-properties "^2.0.0"
 
+"@capacitor-community/admob@^7.0.3":
+  version "7.0.3"
+  resolved "https://registry.npmjs.org/@capacitor-community/admob/-/admob-7.0.3.tgz"
+  integrity sha512-aogZipDosRZB5+RWNukKI1DhPnp7nZNw7KJqnL8Ii6rgYGJaCjpeBvN9bJjFbl1K2jNnCe5lp/a/YlLonBkUQA==
+  dependencies:
+    "@capacitor/core" "^7.0.0"
+    "@rdlabo/capacitor-docgen" "^0.4.1"
+
 "@capacitor-firebase/authentication@^7.2.0":
   version "7.2.0"
   resolved "https://registry.npmjs.org/@capacitor-firebase/authentication/-/authentication-7.2.0.tgz"
@@ -275,7 +283,7 @@
     tslib "^2.8.1"
     xml2js "^0.6.2"
 
-"@capacitor/core@^7.4.0", "@capacitor/core@>=7.0.0":
+"@capacitor/core@^7.0.0", "@capacitor/core@^7.4.0", "@capacitor/core@>=7.0.0":
   version "7.4.0"
   resolved "https://registry.npmjs.org/@capacitor/core/-/core-7.4.0.tgz"
   integrity sha512-P6NnjoHyobZgTjynlZSn27d0SUj6j38inlNxFnKZr9qwU7/r6+0Sg2nWkGkIH/pMmXHsvGD8zVe6KUq1UncIjA==
@@ -1357,6 +1365,16 @@
   resolved "https://registry.npmjs.org/@protobufjs/utf8/-/utf8-1.1.0.tgz"
   integrity sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==
 
+"@rdlabo/capacitor-docgen@^0.4.1":
+  version "0.4.1"
+  resolved "https://registry.npmjs.org/@rdlabo/capacitor-docgen/-/capacitor-docgen-0.4.1.tgz"
+  integrity sha512-zUB0lwha4Omqyr5URy/QaFjP6Gh2xxTKAFI0MClqrmUxQwmV8c84+wGvqAoWPCzg4jk1MsU6oiRVuTkUV7xseA==
+  dependencies:
+    colorette "^2.0.20"
+    github-slugger "^1.5.0"
+    minimist "^1.2.8"
+    typescript "~4.2.4"
+
 "@remix-run/router@1.23.0":
   version "1.23.0"
   resolved "https://registry.npmjs.org/@remix-run/router/-/router-1.23.0.tgz"
@@ -2091,6 +2109,11 @@ color@^4.2.3:
   dependencies:
     color-convert "^2.0.1"
     color-string "^1.9.0"
+
+colorette@^2.0.20:
+  version "2.0.20"
+  resolved "https://registry.npmjs.org/colorette/-/colorette-2.0.20.tgz"
+  integrity sha512-IfEDxwoWIjkeXL1eXcDiow4UbKjhLdq6/EuSVR9GMN7KVH3r9gQ83e73hsz1Nd1T3ijd5xv1wcWRYO+D6kCI2w==
 
 commander@^12.1.0:
   version "12.1.0"
@@ -3003,6 +3026,11 @@ github-from-package@0.0.0:
   resolved "https://registry.npmjs.org/github-from-package/-/github-from-package-0.0.0.tgz"
   integrity sha512-SyHy3T1v2NUXn29OsWdxmK6RwHD+vkj3v8en8AOBZ1wBQ/hCAQ5bAQTD02kW4W9tUp/3Qh6J8r9EvntiyCmOOw==
 
+github-slugger@^1.5.0:
+  version "1.5.0"
+  resolved "https://registry.npmjs.org/github-slugger/-/github-slugger-1.5.0.tgz"
+  integrity sha512-wIh+gKBI9Nshz2o46B0B3f5k/W+WI9ZAv6y5Dn5WJ5SK1t0TnDimB4WE5rmTD05ZAIn8HALCZVmCsvj0w0v0lw==
+
 glob-parent@^5.1.2:
   version "5.1.2"
   resolved "https://registry.npmjs.org/glob-parent/-/glob-parent-5.1.2.tgz"
@@ -3722,7 +3750,7 @@ minimist-options@4.1.0:
     is-plain-obj "^1.1.0"
     kind-of "^6.0.3"
 
-minimist@^1.2.0, minimist@^1.2.3, minimist@^1.2.5:
+minimist@^1.2.0, minimist@^1.2.3, minimist@^1.2.5, minimist@^1.2.8:
   version "1.2.8"
   resolved "https://registry.npmjs.org/minimist/-/minimist-1.2.8.tgz"
   integrity sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==
@@ -5167,6 +5195,11 @@ typescript@^5, typescript@^5.5.3, typescript@>=2.7, typescript@>=4.2.0:
   version "5.6.3"
   resolved "https://registry.npmjs.org/typescript/-/typescript-5.6.3.tgz"
   integrity sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw==
+
+typescript@~4.2.4:
+  version "4.2.4"
+  resolved "https://registry.npmjs.org/typescript/-/typescript-4.2.4.tgz"
+  integrity sha512-V+evlYHZnQkaz8TRBuxTA92yZBPotr5H+WhQ7bD3hZUndx5tGOa1fuCgeSjxAzM1RiN5IzvadIXTVefuuwZCRg==
 
 uglify-js@^3.1.4:
   version "3.19.3"

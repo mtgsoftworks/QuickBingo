@@ -65,6 +65,9 @@ import EventIcon from '@mui/icons-material/Event';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { SettingsModal } from '../UI/SettingsModal';
+import GameRules from './GameRules';
+import { useAdMob } from '../../hooks/useAdMob';
+import LanguageSwitcher from '../UI/LanguageSwitcher';
 
 // Define a type for the game room data
 interface GameRoomData extends DocumentData {
@@ -163,6 +166,10 @@ const GameScreen: React.FC = () => {
   const [achievementsOpen, setAchievementsOpen] = useState(false);
   const [achievements, setAchievements] = useState<Array<{ id: string; title: string }>>([]);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isGameRulesOpen, setIsGameRulesOpen] = useState(false);
+  
+  // AdMob integration
+  const { showBanner, hideBanner, showInterstitial, showRewarded, isNative } = useAdMob();
 
   const handleReady = async () => {
     if (!currentUser || !roomId || !gameRoom) return;
@@ -796,6 +803,11 @@ const GameScreen: React.FC = () => {
         console.error('Error cleaning up room on leave:', error);
       }
     }
+    // Show interstitial ad before leaving
+    if (isNative) {
+      await showInterstitial();
+    }
+    
     // Navigate back to lobby
     navigate('/lobby');
   };
@@ -908,6 +920,14 @@ const GameScreen: React.FC = () => {
                   </button>
                 </>
               )}
+              <LanguageSwitcher />
+              <button
+                onClick={() => setIsGameRulesOpen(true)}
+                className="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex-center hover:bg-opacity-30 transition-all"
+                title="Oyun Kuralları"
+              >
+                <span className="text-white text-lg">📖</span>
+              </button>
               <button
                 onClick={() => setIsSettingsOpen(true)}
                 className="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex-center hover:bg-opacity-30 transition-all"
@@ -1374,6 +1394,12 @@ const GameScreen: React.FC = () => {
       <SettingsModal 
         isOpen={isSettingsOpen} 
         onClose={() => setIsSettingsOpen(false)} 
+      />
+
+      {/* Game Rules Modal */}
+      <GameRules 
+        isOpen={isGameRulesOpen} 
+        onClose={() => setIsGameRulesOpen(false)} 
       />
 
     </div>

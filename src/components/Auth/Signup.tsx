@@ -11,6 +11,7 @@ import { auth, googleProvider } from '../../config/firebase';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '../UI/LanguageSwitcher';
+import Footer from '../UI/Footer';
 import { UserPlus, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 
 const Signup: React.FC = () => {
@@ -247,6 +248,9 @@ const Signup: React.FC = () => {
               </p>
             </div>
           </div>
+          
+          {/* Copyright Footer */}
+          <Footer className="mt-8" />
         </div>
       </div>
     </div>

@@ -214,5 +214,12 @@
   "errorDeclaringWinnerDisconnect": "Error declaring winner after disconnect.",
   "errorFailedToUpdate": "Error updating lobby",
   "errorFailedToLeave": "Error leaving lobby",
-  "roomFull": "This room is full"
+  "roomFull": "This room is full",
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "languageChanged": "Language changed",
+    "turkish": "Türkçe",
+    "english": "English"
+  }
 } 
