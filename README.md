@@ -1,42 +1,44 @@
 # QuickBingo™ Online - Mobile-First Multiplayer Bingo Game
 
-Modern, gerçek zamanlı çok oyunculu Bingo oyunu. **React 18**, **TypeScript**, **Firebase**, **Capacitor** ve modern UI tasarımı ile geliştirildi. 100% mobil uyumlu arayüz ile her cihazda mükemmel deneyim.
+Modern, real-time multiplayer Bingo game. Built with **React 18**, **TypeScript**, **Firebase**, **Capacitor** and modern UI design. Perfect experience on every device with 100% mobile-compatible interface.
 
-## ✨ Özellikler
+**📱 Download from Google Play Store:** [https://play.google.com/store/apps/details?id=com.mtgsoftworks.quickbingo](https://play.google.com/store/apps/details?id=com.mtgsoftworks.quickbingo)
 
-### 🎮 Oyun Özellikleri
-- **Gerçek zamanlı multiplayer**: 2-4 oyuncu desteği
-- **Akıcı oynanış**: Instant sayı çekme ve otomatik senkronizasyon
-- **Başarım sistemi**: Oyuncu istatistikleri ve rozetler
-- **Event sistemi**: Zamanlanmış turnuvalar ve etkinlikler
-- **Sohbet**: Canlı oyun içi chat
+## ✨ Features
 
-### 📱 Modern Mobil Deneyim
+### 🎮 Game Features
+- **Real-time multiplayer**: 2-4 player support
+- **Smooth gameplay**: Instant number drawing and automatic synchronization
+- **Achievement system**: Player statistics and badges
+- **Event system**: Scheduled tournaments and events
+- **Chat**: Live in-game chat
+
+### 📱 Modern Mobile Experience
 - **Mobile-first design**: Touch-optimized interface
-- **PWA desteği**: Uygulama gibi yüklenebilir
-- **Offline mod**: İnternet kesildiğinde devam eder
-- **Native features**: Titreşim, bildirimler, ses efektleri
-- **Safe area support**: Modern cihazlar için optimize
+- **PWA support**: Installable like a native app
+- **Offline mode**: Continues when internet is disconnected
+- **Native features**: Vibration, notifications, sound effects
+- **Safe area support**: Optimized for modern devices
 
 ### 🎨 Modern UI/UX
-- **Glass morphism**: Şeffaf blur efektleri
-- **Gradient backgrounds**: Rengarenk tema
-- **Smooth animations**: Framer Motion ile akıcı geçişler
-- **Dark/Light mode**: Otomatik tema değişimi
-- **Responsive grid**: Her ekran boyutu için optimize
+- **Glass morphism**: Transparent blur effects
+- **Gradient backgrounds**: Colorful themes
+- **Smooth animations**: Fluid transitions with Framer Motion
+- **Dark/Light mode**: Automatic theme switching
+- **Responsive grid**: Optimized for every screen size
 
-### ⚙️ Kapsamlı Ayarlar
-- **Ses kontrolü**: Ana ses, müzik, efektler
-- **Görünüm**: Tema, dil, yazı boyutu, animasyonlar
-- **Oyun ayarları**: Otomatik işaretleme, rakip takibi
-- **Bildirimler**: Push, oyun davetleri, başarımlar
-- **Hesap**: Profil görünürlüğü, gizlilik
-- **Import/Export**: Ayarları yedekleme
+### ⚙️ Comprehensive Settings
+- **Audio control**: Master volume, music, effects
+- **Appearance**: Theme, language, font size, animations
+- **Game settings**: Auto-marking, opponent tracking
+- **Notifications**: Push, game invites, achievements
+- **Account**: Profile visibility, privacy
+- **Import/Export**: Settings backup
 
-## 🛠 Teknoloji Stack
+## 🛠 Technology Stack
 
 ### Frontend
-- **React 18.3.1** - Modern React hooks ve Suspense
+- **React 18.3.1** - Modern React hooks and Suspense
 - **TypeScript 5.5** - Type-safe development
 - **Vite 5.4** - Lightning-fast build tool
 - **Tailwind CSS 3.4** - Utility-first styling
@@ -59,79 +61,79 @@ Modern, gerçek zamanlı çok oyunculu Bingo oyunu. **React 18**, **TypeScript**
 - **React Hot Toast** - Beautiful notifications
 - **React i18next** - Internationalization (TR/EN)
 
-## 🚀 Hızlı Başlangıç
+## 🚀 Quick Start
 
-### Gereksinimler
+### Requirements
 - Node.js 18+ 
-- npm veya yarn
-- Firebase projesi
+- npm or yarn
+- Firebase project
 
-### Kurulum
+### Installation
 
 ```bash
-# Projeyi klonla
+# Clone the project
 git clone https://github.com/mtgsoftworks/quick-bingo-mobil.git
 cd quick-bingo-mobil
 
-# Bağımlılıkları yükle
+# Install dependencies
 npm install
 
-# Environment dosyasını oluştur
+# Create environment file
 cp .env.example .env
 
-# Firebase ayarlarını .env dosyasına ekle
+# Add Firebase settings to .env file
 # VITE_FIREBASE_API_KEY=...
 # VITE_FIREBASE_AUTH_DOMAIN=...
-# (diğer Firebase config değerleri)
+# (other Firebase config values)
 
-# Development server'ı başlat
+# Start development server
 npm run dev
 ```
 
-Tarayıcınızda `http://localhost:5173` adresini açın.
+Open `http://localhost:5173` in your browser.
 
 ### Mobile Build
 
 ```bash
-# Capacitor için build
+# Build for Capacitor
 npm run build
 
-# iOS için
+# For iOS
 npx cap add ios
 npx cap sync ios
 npx cap open ios
 
-# Android için
+# For Android
 npx cap add android
 npx cap sync android
 npx cap open android
 ```
 
-## 🎯 Oyun Kuralları
+## 🎯 Game Rules
 
-1. **Kart**: Her oyuncuya 5×5 sayısal Bingo kartı verilir
-2. **Sayı Çekme**: Host belirlenen aralıklarla rastgele sayı çeker
-3. **İşaretleme**: Çekilen sayılar kartınızda otomatik/manuel işaretlenir
-4. **Kazanma**: 
-   - **Satır Bingo**: Yatay, dikey veya çapraz bir satır tamamlama
-   - **Full House**: Tüm kartı tamamlama (oyun sonu)
-5. **Sıralama**: İlk tamamlayan oyuncu kazanır
+1. **Card**: Each player receives a 5×5 numerical Bingo card
+2. **Number Drawing**: Host draws random numbers at specified intervals
+3. **Marking**: Drawn numbers are marked automatically/manually on your card
+4. **Winning**: 
+   - **Line Bingo**: Complete a horizontal, vertical, or diagonal line
+   - **Full House**: Complete the entire card (game end)
+5. **Ranking**: First player to complete wins
 
 ## 📱 Mobile Features
 
-### PWA Özellikleri
-- Çevrimdışı oynanabilirlik
-- Ana ekrana ekleme
-- Push bildirimler
+### PWA Features
+- Offline playability
+- Add to home screen
+- Push notifications
 - Background sync
 
 ### Native Mobile (Capacitor)
-- Dokunmatik geri bildirimi (haptic feedback)
-- Cihaz bildirimler
-- Ağ durumu takibi
-- Dosya sistemi erişimi
+- Haptic feedback
+- Device notifications
+- Network status monitoring
+- File system access
 
-## 🏗 Proje Yapısı
+## 🏗 Project Structure
 
 ```
 quick-bingo-mobil/
@@ -159,12 +161,12 @@ quick-bingo-mobil/
 └── vite.config.ts       # Vite build config
 ```
 
-## 🌍 Çoklu Dil Desteği
+## 🌍 Multi-Language Support
 
-- **Türkçe** (tr) - Ana dil
-- **English** (en) - İkincil dil
-- Dinamik dil değiştirme
-- RTL desteği hazır
+- **Turkish** (tr) - Primary language
+- **English** (en) - Secondary language
+- Dynamic language switching
+- RTL support ready
 
 ## 🎨 Design System
 
@@ -182,7 +184,7 @@ quick-bingo-mobil/
 
 ### Spacing & Layout
 - **Container**: Mobile-optimized widths
-- **Grid**: CSS Grid ve Flexbox
+- **Grid**: CSS Grid and Flexbox
 - **Touch targets**: Minimum 44px for mobile
 
 ## 🔧 Development Scripts
@@ -228,7 +230,7 @@ firebase deploy
 
 ## 📄 License
 
-Bu proje **MIT License** altında lisanslanmıştır. Detaylar için [LICENSE](LICENSE) dosyasına bakın.
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
 
 ## 👨‍💻 Developer
 
